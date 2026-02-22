@@ -1,5 +1,5 @@
 {
-  "name": "@aiready/vscode-extension",
+  "name": "aiready",
   "displayName": "AIReady - AI Readiness Checker",
   "description": "Real-time AI readiness analysis for your codebase. Detect issues that confuse AI models before they become problems.",
   "version": "0.1.0",
@@ -170,14 +170,11 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
-    "compile": "tsup src/extension.ts --format cjs --outdir dist --external vscode",
-    "watch": "tsup src/extension.ts --format cjs --outdir dist --external vscode --watch",
+    "compile": "tsup src/extension.ts --format cjs --out-dir dist --external vscode",
+    "watch": "tsup src/extension.ts --format cjs --out-dir dist --external vscode --watch",
     "lint": "eslint src",
     "test": "vitest run",
     "package": "vsce package --no-dependencies"
-  },
-  "dependencies": {
-    "@aiready/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
@@ -195,5 +192,3 @@
     "url": "https://github.com/caopengau/aiready/issues"
   }
 }
-</task_progress>
-</write_to_file>
