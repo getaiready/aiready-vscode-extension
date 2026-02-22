@@ -1,0 +1,199 @@
+{
+  "name": "@aiready/vscode-extension",
+  "displayName": "AIReady - AI Readiness Checker",
+  "description": "Real-time AI readiness analysis for your codebase. Detect issues that confuse AI models before they become problems.",
+  "version": "0.1.0",
+  "publisher": "aiready",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e3a5f",
+    "theme": "dark"
+  },
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/aiready.aiready?label=VS%20Code%20Marketplace&color=blue",
+      "href": "https://marketplace.visualstudio.com/items?itemName=aiready.aiready",
+      "description": "VS Code Marketplace"
+    },
+    {
+      "url": "https://img.shields.io/npm/v/@aiready/cli?label=npm&color=blue",
+      "href": "https://www.npmjs.com/package/@aiready/cli",
+      "description": "npm version"
+    }
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "readiness",
+    "code-quality",
+    "linting",
+    "code-analysis",
+    "developer-tools",
+    "ai-tools"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:aiready.scan",
+    "onCommand:aiready.showReport"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiready.scan",
+        "title": "AIReady: Scan Workspace",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "aiready.showReport",
+        "title": "AIReady: Show Report",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "aiready.openSettings",
+        "title": "AIReady: Open Settings"
+      },
+      {
+        "command": "aiready.quickScan",
+        "title": "AIReady: Quick Scan (Current File)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "aiready.scan",
+          "group": "navigation@99",
+          "when": "editorTextFocus"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "aiready.quickScan",
+          "group": "aiready@1",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AIReady",
+      "properties": {
+        "aiready.threshold": {
+          "type": "number",
+          "default": 70,
+          "description": "Minimum AI readiness score (0-100) to pass checks"
+        },
+        "aiready.failOn": {
+          "type": "string",
+          "enum": ["critical", "major", "any", "none"],
+          "default": "critical",
+          "description": "Fail on issues of this severity or higher"
+        },
+        "aiready.tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["patterns", "context", "consistency"]
+          },
+          "default": ["patterns", "context", "consistency"],
+          "description": "Tools to run during analysis"
+        },
+        "aiready.autoScan": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically scan on file save"
+        },
+        "aiready.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["node_modules/**", "dist/**", ".git/**"],
+          "description": "Glob patterns to exclude from analysis"
+        },
+        "aiready.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AI readiness score in status bar"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiready",
+          "title": "AIReady",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "aiready": [
+        {
+          "id": "aiready.issues",
+          "name": "Issues"
+        },
+        {
+          "id": "aiready.summary",
+          "name": "Summary"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "aiready.gettingStarted",
+        "title": "Get Started with AIReady",
+        "description": "Learn how to use AIReady to improve your codebase's AI readiness",
+        "steps": [
+          {
+            "id": "scan",
+            "title": "Run Your First Scan",
+            "description": "Use the command palette (Cmd+Shift+P) and run 'AIReady: Scan Workspace'",
+            "completionEvents": ["onCommand:aiready.scan"]
+          },
+          {
+            "id": "review",
+            "title": "Review Issues",
+            "description": "Check the AIReady panel in the sidebar for detected issues",
+            "completionEvents": ["onView:aiready.issues"]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsup src/extension.ts --format cjs --outdir dist --external vscode",
+    "watch": "tsup src/extension.ts --format cjs --outdir dist --external vscode --watch",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@aiready/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caopengau/aiready.git"
+  },
+  "homepage": "https://getaiready.dev",
+  "bugs": {
+    "url": "https://github.com/caopengau/aiready/issues"
+  }
+}
+</task_progress>
+</write_to_file>
