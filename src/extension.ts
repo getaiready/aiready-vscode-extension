@@ -292,10 +292,9 @@ async function runAIReady(path: string, quickScan = false): Promise<void> {
   updateStatusBar('$(sync~spin) Scanning...', false);
 
   try {
-    // Build CLI command matching CLI defaults
-    // Use --output json for structured results, and include --score for AI readiness
+    // Build CLI command - score is enabled by default, no flag needed
     const toolsArg = tools.join(',');
-    let cmd = `npx @aiready/cli scan --output json --tools ${toolsArg} --score`;
+    let cmd = `npx @aiready/cli scan --output json --tools ${toolsArg}`;
     
     // Add path argument
     cmd += ` "${path}"`;
@@ -423,22 +422,48 @@ async function runVisualizer(): Promise<void> {
     outputChannel.appendLine('═══════════════════════════════════════');
     outputChannel.appendLine('');
     outputChannel.appendLine('Starting interactive visualization...');
-    outputChannel.show();
-    
-    // Run the visualizer command with --dev flag to start dev server
+    outputChannel.appendLine('');
     outputChannel.appendLine('Running: npx @aiready/cli visualize --dev');
     outputChannel.appendLine('');
+    outputChannel.show();
     
-    // Use spawn for long-running process
+    // Use spawn with pipe to capture output
     const child = spawn('npx', ['@aiready/cli', 'visualize', '--dev'], {
       cwd: workspacePath,
       shell: true,
-      stdio: 'inherit'
+      env: { ...process.env, FORCE_COLOR: '0' }
+    });
+    
+    // Pipe stdout to output channel
+    child.stdout?.on('data', (data: Buffer) => {
+      const lines = data.toString().split('\n');
+      lines.forEach((line: string) => {
+        if (line.trim()) {
+          outputChannel.appendLine(line);
+        }
+      });
+    });
+    
+    // Pipe stderr to output channel
+    child.stderr?.on('data', (data: Buffer) => {
+      const lines = data.toString().split('\n');
+      lines.forEach((line: string) => {
+        if (line.trim()) {
+          outputChannel.appendLine(`[stderr] ${line}`);
+        }
+      });
     });
     
     child.on('error', (error: Error) => {
       outputChannel.appendLine(`Error: ${error.message}`);
       updateStatusBar('$(shield) AIReady: Error', true);
+      vscode.window.showErrorMessage(`AIReady visualizer failed: ${error.message}`);
+    });
+    
+    child.on('close', (code: number) => {
+      if (code !== 0 && code !== null) {
+        outputChannel.appendLine(`Process exited with code ${code}`);
+      }
     });
     
     updateStatusBar('$(graph) AIReady: Visualizer', false);
