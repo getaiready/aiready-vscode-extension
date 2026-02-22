@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import { AIReadyIssuesProvider, Issue } from '../providers/issuesProvider';
 import { AIReadySummaryProvider, Summary } from '../providers/summaryProvider';
 import { getMergedConfig } from '../utils/config';
-import { extractJSON } from '../utils/json';
 
 const execAsync = promisify(exec);
 
@@ -30,6 +31,28 @@ interface AIReadyResult {
   patterns?: any[];
   context?: any[];
   consistency?: any;
+}
+
+/**
+ * Find the most recent AIReady report file
+ */
+function findLatestReport(workspacePath: string): string | null {
+  const aireadyDir = join(workspacePath, '.aiready');
+  if (!existsSync(aireadyDir)) {
+    return null;
+  }
+  
+  const fs = require('fs');
+  const files = fs.readdirSync(aireadyDir)
+    .filter((f: string) => f.startsWith('aiready-report-') && f.endsWith('.json'))
+    .map((f: string) => ({
+      name: f,
+      path: join(aireadyDir, f),
+      mtime: fs.statSync(join(aireadyDir, f)).mtime
+    }))
+    .sort((a: any, b: any) => b.mtime.getTime() - a.mtime.getTime());
+  
+  return files.length > 0 ? files[0].path : null;
 }
 
 export function createScanCommands(
@@ -66,11 +89,12 @@ export function createScanCommands(
   async function runAIReady(path: string, quickScan = false): Promise<void> {
     const mergedConfig = getMergedConfig();
     const { threshold, tools } = mergedConfig;
+    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
     updateStatusBar('$(sync~spin) Scanning...', false);
 
     try {
-      // Build CLI command - score is enabled by default, no flag needed
+      // Build CLI command - the CLI saves JSON to .aiready/ directory
       const toolsArg = tools.join(',');
       let cmd = `npx @aiready/cli scan --output json --tools ${toolsArg}`;
       
@@ -81,30 +105,36 @@ export function createScanCommands(
       outputChannel.appendLine('Running AIReady scan...');
       outputChannel.appendLine(`Command: ${cmd}`);
       outputChannel.appendLine('');
+      outputChannel.show();
       
+      // Run the CLI command - it will save JSON to .aiready/ directory
       const { stdout, stderr } = await execAsync(cmd, {
         maxBuffer: 1024 * 1024 * 10,
-        cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd()
+        cwd: workspacePath
       });
 
-      // Show any stderr output
+      // Show CLI output to user
+      if (stdout) {
+        // Strip ANSI codes for cleaner output
+        const cleanOutput = stdout.replace(/\x1b\[[0-9;]*m/g, '');
+        outputChannel.appendLine(cleanOutput);
+      }
+      
       if (stderr) {
         outputChannel.appendLine(`[stderr] ${stderr}`);
       }
 
-      // Extract JSON from potentially mixed output
-      const jsonStr = extractJSON(stdout);
+      // Find and read the generated report file
+      const reportPath = findLatestReport(workspacePath);
       
-      let result: AIReadyResult;
-
-      try {
-        result = JSON.parse(jsonStr);
-      } catch (parseError) {
-        // If JSON parsing fails, show the raw output for debugging
-        outputChannel.appendLine('Raw output:');
-        outputChannel.appendLine(stdout);
-        throw new Error('Failed to parse CLI output as JSON. The CLI may have output errors. Check the output panel for details.');
+      if (!reportPath) {
+        throw new Error('No report file found. The CLI may have failed to generate output.');
       }
+      
+      outputChannel.appendLine(`\n📄 Reading report: ${reportPath}`);
+      
+      const jsonContent = readFileSync(reportPath, 'utf8');
+      const result: AIReadyResult = JSON.parse(jsonContent);
 
       // Determine score - use scoring.overallScore if available, else result.score
       const score = result.scoring?.overallScore ?? result.score ?? 0;
@@ -134,6 +164,7 @@ export function createScanCommands(
       summaryProvider.refresh(summary);
 
       // Show summary in output channel
+      outputChannel.appendLine('');
       outputChannel.appendLine('═══════════════════════════════════════');
       outputChannel.appendLine('       AIReady Analysis Results        ');
       outputChannel.appendLine('═══════════════════════════════════════');
