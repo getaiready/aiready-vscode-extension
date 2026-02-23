@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 
 export function createVisualizeCommand(
   outputChannel: vscode.OutputChannel,
@@ -35,6 +35,8 @@ export function createVisualizeCommand(
         env: { ...process.env, FORCE_COLOR: '0' }
       });
       
+      let visualizerNotFound = false;
+      
       // Pipe stdout to output channel
       child.stdout?.on('data', (data: Buffer) => {
         const lines = data.toString().split('\n');
@@ -45,12 +47,17 @@ export function createVisualizeCommand(
         });
       });
       
-      // Pipe stderr to output channel
+      // Pipe stderr to output channel and check for errors
       child.stderr?.on('data', (data: Buffer) => {
         const lines = data.toString().split('\n');
         lines.forEach((line: string) => {
           if (line.trim()) {
             outputChannel.appendLine(`[stderr] ${line}`);
+            // Check for visualizer not found error
+            if (line.includes('@aiready/visualizer not available') || 
+                line.includes('Cannot start dev server')) {
+              visualizerNotFound = true;
+            }
           }
         });
       });
@@ -64,6 +71,24 @@ export function createVisualizeCommand(
       child.on('close', (code: number) => {
         if (code !== 0 && code !== null) {
           outputChannel.appendLine(`Process exited with code ${code}`);
+          
+          // If visualizer was not found, offer to install it
+          if (visualizerNotFound) {
+            outputChannel.appendLine('');
+            outputChannel.appendLine('💡 Tip: Install @aiready/visualizer to enable interactive visualizations:');
+            outputChannel.appendLine('   npm install @aiready/visualizer');
+            outputChannel.appendLine('   or');
+            outputChannel.appendLine('   pnpm add @aiready/visualizer');
+            
+            vscode.window.showErrorMessage(
+              'AIReady: Visualizer not installed. Install @aiready/visualizer to enable interactive visualizations.',
+              'Install Now'
+            ).then(action => {
+              if (action === 'Install Now') {
+                installVisualizer(workspacePath, outputChannel);
+              }
+            });
+          }
         }
       });
       
@@ -83,4 +108,49 @@ export function createVisualizeCommand(
   }
 
   return runVisualizer;
+}
+
+/**
+ * Install @aiready/visualizer in the workspace
+ */
+async function installVisualizer(workspacePath: string, outputChannel: vscode.OutputChannel): Promise<void> {
+  outputChannel.appendLine('');
+  outputChannel.appendLine('📦 Installing @aiready/visualizer...');
+  
+  try {
+    // Check if pnpm or npm is used
+    const usesPnpm = require('fs').existsSync(require('path').join(workspacePath, 'pnpm-lock.yaml'));
+    const packageManager = usesPnpm ? 'pnpm' : 'npm';
+    
+    outputChannel.appendLine(`Using ${packageManager} to install...`);
+    
+    const child = spawn(packageManager, ['add', '-D', '@aiready/visualizer'], {
+      cwd: workspacePath,
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: '0' }
+    });
+    
+    child.stdout?.on('data', (data: Buffer) => {
+      outputChannel.appendLine(data.toString());
+    });
+    
+    child.stderr?.on('data', (data: Buffer) => {
+      outputChannel.appendLine(`[stderr] ${data.toString()}`);
+    });
+    
+    child.on('close', (code: number) => {
+      if (code === 0) {
+        outputChannel.appendLine('✅ @aiready/visualizer installed successfully!');
+        vscode.window.showInformationMessage('AIReady: Visualizer installed! Run the visualizer command again to start.');
+      } else {
+        outputChannel.appendLine(`❌ Installation failed with code ${code}`);
+        vscode.window.showErrorMessage('AIReady: Failed to install visualizer. Please install manually: npm install @aiready/visualizer');
+      }
+    });
+    
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    outputChannel.appendLine(`❌ Installation error: ${message}`);
+    vscode.window.showErrorMessage(`AIReady: Failed to install visualizer: ${message}`);
+  }
 }

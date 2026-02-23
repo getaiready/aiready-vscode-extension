@@ -17,11 +17,25 @@ interface AIReadyResult {
     executionTime: number;
   };
   scoring?: {
-    overallScore: number;
+    overall: number;
+    rating: string;
+    timestamp: string;
+    toolsUsed: string[];
     breakdown?: Array<{
       toolName: string;
       score: number;
-      rating: string;
+      rating?: string;
+      rawMetrics?: Record<string, any>;
+      factors?: Array<{
+        name: string;
+        impact: number;
+        description: string;
+      }>;
+      recommendations?: Array<{
+        action: string;
+        estimatedImpact: number;
+        priority: string;
+      }>;
     }>;
   };
   patterns?: Array<{
@@ -89,6 +103,17 @@ function findLatestReport(workspacePath: string): string | null {
     .sort((a: any, b: any) => b.mtime.getTime() - a.mtime.getTime());
   
   return files.length > 0 ? files[0].path : null;
+}
+
+/**
+ * Derive rating from score
+ */
+function getRatingFromScore(score: number): string {
+  if (score >= 90) return 'Excellent';
+  if (score >= 80) return 'Good';
+  if (score >= 70) return 'Fair';
+  if (score >= 60) return 'Needs Work';
+  return 'Critical';
 }
 
 /**
@@ -203,8 +228,9 @@ export function createScanCommands(
       const jsonContent = readFileSync(reportPath, 'utf8');
       const result: AIReadyResult = JSON.parse(jsonContent);
 
-      // Determine score - use scoring.overallScore if available
-      const score = result.scoring?.overallScore ?? 0;
+      // Determine score - use scoring.overall if available
+      const score = result.scoring?.overall ?? 0;
+      const overallRating = result.scoring?.rating ?? 'Unknown';
       
       // Count issues by severity
       const issueCounts = countIssues(result);
@@ -241,14 +267,16 @@ export function createScanCommands(
       outputChannel.appendLine('');
       
       // Show AI Readiness Score
-      outputChannel.appendLine(`AI Readiness Score: ${score}/100`);
+      outputChannel.appendLine(`AI Readiness Score: ${score}/100 (${overallRating})`);
       
       // Show tool breakdown if available
       if (result.scoring?.breakdown && result.scoring.breakdown.length > 0) {
         outputChannel.appendLine('');
         outputChannel.appendLine('Tool Breakdown:');
         result.scoring.breakdown.forEach(tool => {
-          outputChannel.appendLine(`  - ${tool.toolName}: ${tool.score}/100 (${tool.rating})`);
+          // Derive rating from score if not provided
+          const toolRating = tool.rating || getRatingFromScore(tool.score);
+          outputChannel.appendLine(`  - ${tool.toolName}: ${tool.score}/100 (${toolRating})`);
         });
       }
       
