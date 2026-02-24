@@ -2,7 +2,7 @@
   "name": "aiready",
   "displayName": "AIReady - AI Readiness Checker",
   "description": "Real-time AI readiness analysis for your codebase. Detect issues that confuse AI models before they become problems.",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "publisher": "pengcao",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -129,7 +129,12 @@
         },
         "aiready.failOn": {
           "type": "string",
-          "enum": ["critical", "major", "any", "none"],
+          "enum": [
+            "critical",
+            "major",
+            "any",
+            "none"
+          ],
           "default": "critical",
           "description": "Fail on issues of this severity or higher. Default: critical (matching CLI)"
         },
@@ -137,9 +142,17 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["patterns", "context", "consistency"]
+            "enum": [
+              "patterns",
+              "context",
+              "consistency"
+            ]
           },
-          "default": ["patterns", "context", "consistency"],
+          "default": [
+            "patterns",
+            "context",
+            "consistency"
+          ],
           "description": "Tools to run during analysis. Default: all three (matching CLI)"
         },
         "aiready.autoScan": {
@@ -152,7 +165,13 @@
           "items": {
             "type": "string"
           },
-          "default": ["node_modules/**", "dist/**", ".git/**", "**/*.min.js", "**/build/**"],
+          "default": [
+            "node_modules/**",
+            "dist/**",
+            ".git/**",
+            "**/*.min.js",
+            "**/build/**"
+          ],
           "description": "Glob patterns to exclude from analysis (matching CLI defaults)"
         },
         "aiready.showStatusBar": {
@@ -197,13 +216,17 @@
             "id": "scan",
             "title": "Run Your First Scan",
             "description": "Use the command palette (Cmd+Shift+P) and run 'AIReady: Scan Workspace'",
-            "completionEvents": ["onCommand:aiready.scan"]
+            "completionEvents": [
+              "onCommand:aiready.scan"
+            ]
           },
           {
             "id": "review",
             "title": "Review Issues",
             "description": "Check the AIReady panel in the sidebar for detected issues",
-            "completionEvents": ["onView:aiready.issues"]
+            "completionEvents": [
+              "onView:aiready.issues"
+            ]
           }
         ]
       }
