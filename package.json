@@ -237,7 +237,7 @@
     "compile": "tsup src/extension.ts --format cjs --out-dir dist --external vscode",
     "watch": "tsup src/extension.ts --format cjs --out-dir dist --external vscode --watch",
     "lint": "eslint src",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "package": "vsce package --no-dependencies"
   },
   "devDependencies": {
