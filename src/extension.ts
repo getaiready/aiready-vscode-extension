@@ -54,10 +54,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(issuesView, summaryView, reportsView);
   
+  // Initialize views
+  issuesProvider.refresh();
+  summaryProvider.refresh();
+  
   // Load existing reports on startup
   const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspacePath) {
     reportsProvider.refresh(workspacePath);
+  } else {
+    reportsProvider.refresh();
   }
   
   // Register showReportDetail command
@@ -140,10 +146,6 @@ export function activate(context: vscode.ExtensionContext) {
       })
     );
   }
-
-  // Initial refresh of views
-  issuesProvider.refresh();
-  summaryProvider.refresh();
 }
 
 export function deactivate() {
