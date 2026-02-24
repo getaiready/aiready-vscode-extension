@@ -79,7 +79,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBarItem);
 
   // Create visualize command first (needed by scan commands)
-  const runVisualizer = createVisualizeCommand(outputChannel, updateStatusBar);
+  const { runVisualizer, stopVisualizer } = createVisualizeCommand(outputChannel, updateStatusBar);
+  _stopVisualizer = stopVisualizer;
 
   // Create scan commands
   const { scanWorkspace, quickScan } = createScanCommands(
@@ -124,6 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('aiready.scan', scanWorkspace),
     vscode.commands.registerCommand('aiready.quickScan', quickScan),
     vscode.commands.registerCommand('aiready.visualize', runVisualizer),
+    vscode.commands.registerCommand('aiready.stopVisualizer', stopVisualizer),
     vscode.commands.registerCommand('aiready.showReport', () => outputChannel.show()),
     vscode.commands.registerCommand('aiready.openSettings', () => 
       vscode.commands.executeCommand('workbench.action.openSettings', 'aiready')
@@ -148,7 +150,11 @@ export function activate(context: vscode.ExtensionContext) {
   }
 }
 
+// Module-level ref so deactivate() can stop the visualizer
+let _stopVisualizer: (() => void) | undefined;
+
 export function deactivate() {
+  _stopVisualizer?.();
   if (statusBarItem) {
     statusBarItem.dispose();
   }

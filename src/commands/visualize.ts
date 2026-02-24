@@ -1,10 +1,27 @@
 import * as vscode from 'vscode';
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
+import type { ChildProcess } from 'child_process';
+
+let visualizerProcess: ChildProcess | null = null;
 
 export function createVisualizeCommand(
   outputChannel: vscode.OutputChannel,
   updateStatusBar: (text: string, isError: boolean) => void
-): () => Promise<void> {
+): { runVisualizer: () => Promise<void>; stopVisualizer: () => void } {
+
+  function stopVisualizer(): void {
+    if (visualizerProcess) {
+      outputChannel.appendLine('');
+      outputChannel.appendLine('🛑 Stopping visualizer...');
+      visualizerProcess.kill('SIGTERM');
+      visualizerProcess = null;
+      updateStatusBar('$(shield) AIReady', false);
+      outputChannel.appendLine('✅ Visualizer stopped.');
+    } else {
+      vscode.window.showInformationMessage('AIReady: No visualizer is currently running.');
+    }
+  }
+
   async function runVisualizer(): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -12,10 +29,22 @@ export function createVisualizeCommand(
       return;
     }
 
+    // If already running, offer to restart
+    if (visualizerProcess) {
+      const choice = await vscode.window.showWarningMessage(
+        'AIReady: Visualizer is already running. Restart it?',
+        'Restart', 'Stop', 'Cancel'
+      );
+      if (choice === 'Cancel' || choice === undefined) { return; }
+      stopVisualizer();
+      if (choice === 'Stop') { return; }
+      // Small delay to let the port free up before restarting
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+
     const workspacePath = workspaceFolders[0].uri.fsPath;
-    
     updateStatusBar('$(sync~spin) Starting visualizer...', false);
-    
+
     try {
       outputChannel.clear();
       outputChannel.appendLine('═══════════════════════════════════════');
@@ -24,68 +53,81 @@ export function createVisualizeCommand(
       outputChannel.appendLine('');
       outputChannel.appendLine('Starting interactive visualization...');
       outputChannel.appendLine('');
-      outputChannel.appendLine('Running: npx @aiready/cli visualize --serve');
+      outputChannel.appendLine('Running: npx @aiready/cli visualise');
       outputChannel.appendLine('');
       outputChannel.show();
-      
-      // Use --serve instead of --dev because:
-      // - --dev requires @aiready/visualizer to be installed (runs Vite dev server)
-      // - --serve generates static HTML and serves it (works out of the box)
-      const child = spawn('npx', ['@aiready/cli', 'visualize', '--serve'], {
+
+      const child = spawn('npx', ['@aiready/cli', 'visualise'], {
         cwd: workspacePath,
         shell: true,
         env: { ...process.env, FORCE_COLOR: '0' }
       });
-      
-      // Pipe stdout to output channel
+
+      visualizerProcess = child;
+      let urlNotified = false;
+
       child.stdout?.on('data', (data: Buffer) => {
-        const lines = data.toString().split('\n');
-        lines.forEach((line: string) => {
-          if (line.trim()) {
-            outputChannel.appendLine(line);
-          }
+        const text = data.toString();
+        text.split('\n').forEach((line: string) => {
+          if (line.trim()) { outputChannel.appendLine(line); }
         });
+
+        // Detect the local server URL once and offer to open it
+        if (!urlNotified) {
+          const match = text.match(/https?:\/\/localhost:\d+[^\s]*/);
+          if (match) {
+            urlNotified = true;
+            const url = match[0];
+            vscode.window.showInformationMessage(
+              `AIReady: Visualizer running at ${url}`,
+              'Open in Browser', 'Stop Visualizer'
+            ).then(action => {
+              if (action === 'Open in Browser') {
+                vscode.env.openExternal(vscode.Uri.parse(url));
+              } else if (action === 'Stop Visualizer') {
+                stopVisualizer();
+              }
+            });
+          }
+        }
       });
-      
-      // Pipe stderr to output channel
+
       child.stderr?.on('data', (data: Buffer) => {
-        const lines = data.toString().split('\n');
-        lines.forEach((line: string) => {
-          if (line.trim()) {
-            outputChannel.appendLine(`[stderr] ${line}`);
-          }
+        data.toString().split('\n').forEach((line: string) => {
+          if (line.trim()) { outputChannel.appendLine(`[stderr] ${line}`); }
         });
       });
-      
+
       child.on('error', (error: Error) => {
         outputChannel.appendLine(`Error: ${error.message}`);
         updateStatusBar('$(shield) AIReady: Error', true);
         vscode.window.showErrorMessage(`AIReady visualizer failed: ${error.message}`);
+        visualizerProcess = null;
       });
-      
-      child.on('close', (code: number) => {
+
+      child.on('close', (code: number | null) => {
+        visualizerProcess = null;
+        updateStatusBar('$(shield) AIReady', false);
         if (code !== 0 && code !== null) {
-          outputChannel.appendLine(`Process exited with code ${code}`);
-          updateStatusBar('$(shield) AIReady: Error', true);
+          outputChannel.appendLine(`Visualizer process exited with code ${code}`);
+        } else {
+          outputChannel.appendLine('Visualizer stopped.');
         }
       });
-      
-      updateStatusBar('$(graph) AIReady: Visualizer', false);
-      
-      vscode.window.showInformationMessage(
-        'AIReady: Visualizer started. Check the output panel for the URL (usually http://localhost:5173)'
-      );
-      
+
+      updateStatusBar('$(graph) AIReady: Visualizer running', false);
+
     } catch (error) {
       updateStatusBar('$(shield) AIReady: Error', true);
       const message = error instanceof Error ? error.message : 'Unknown error';
       vscode.window.showErrorMessage(`AIReady visualizer failed: ${message}`);
       outputChannel.appendLine(`Error: ${message}`);
       outputChannel.show();
+      visualizerProcess = null;
     }
   }
 
-  return runVisualizer;
+  return { runVisualizer, stopVisualizer };
 }
 
 /**
