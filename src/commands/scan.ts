@@ -244,20 +244,30 @@ export function createScanCommands(
         !passed
       );
 
-      // Update sidebar views
+      // Update sidebar views - add tool information to each issue
       const allIssues: Issue[] = [
-        ...(result.patterns?.flatMap((p: any) => p.issues || []) || []),
-        ...(result.context || []),
-        ...(result.consistency?.results?.flatMap((r: any) => r.issues || []) || [])
+        ...(result.patterns?.flatMap((p: any) => 
+          (p.issues || []).map((issue: any) => ({ ...issue, tool: 'patterns' }))
+        ) || []),
+        ...(result.context?.map((issue: any) => ({ ...issue, tool: 'context' })) || []),
+        ...(result.consistency?.results?.flatMap((r: any) => 
+          (r.issues || []).map((issue: any) => ({ ...issue, tool: 'consistency' }))
+        ) || [])
       ];
       
       issuesProvider.refresh(allIssues);
       
       const summary: Summary = {
         score,
-        issues: issueCounts.total,
-        warnings: issueCounts.major + issueCounts.minor,
-        breakdown: result.scoring?.breakdown
+        issues: issueCounts.critical + issueCounts.major,
+        warnings: issueCounts.minor + issueCounts.info,
+        breakdown: result.scoring?.breakdown,
+        issueBreakdown: {
+          critical: issueCounts.critical,
+          major: issueCounts.major,
+          minor: issueCounts.minor,
+          info: issueCounts.info
+        }
       };
       summaryProvider.refresh(summary);
       

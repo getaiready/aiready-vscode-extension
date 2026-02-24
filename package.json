@@ -69,6 +69,38 @@
       {
         "command": "aiready.quickScan",
         "title": "AIReady: Quick Scan (Current File)"
+      },
+      {
+        "command": "aiready.issues.groupBySeverity",
+        "title": "AIReady: Group Issues by Severity"
+      },
+      {
+        "command": "aiready.issues.groupByTool",
+        "title": "AIReady: Group Issues by Tool"
+      },
+      {
+        "command": "aiready.issues.groupByFile",
+        "title": "AIReady: Group Issues by File"
+      },
+      {
+        "command": "aiready.issues.groupByNone",
+        "title": "AIReady: Disable Issues Grouping"
+      },
+      {
+        "command": "aiready.issues.filterAll",
+        "title": "AIReady: Show All Issues"
+      },
+      {
+        "command": "aiready.issues.filterCritical",
+        "title": "AIReady: Filter Critical Issues"
+      },
+      {
+        "command": "aiready.issues.filterMajor",
+        "title": "AIReady: Filter Major Issues"
+      },
+      {
+        "command": "aiready.issues.filterMinor",
+        "title": "AIReady: Filter Minor Issues"
       }
     ],
     "menus": {
@@ -142,12 +174,16 @@
     "views": {
       "aiready": [
         {
+          "id": "aiready.summary",
+          "name": "Summary"
+        },
+        {
           "id": "aiready.issues",
           "name": "Issues"
         },
         {
-          "id": "aiready.summary",
-          "name": "Summary"
+          "id": "aiready.reports",
+          "name": "Reports"
         }
       ]
     },

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SMART_DEFAULTS } from './utils/config';
-import { AIReadyIssuesProvider } from './providers/issuesProvider';
+import { AIReadyIssuesProvider, GroupBy, SeverityFilter } from './providers/issuesProvider';
 import { AIReadySummaryProvider } from './providers/summaryProvider';
 import { AIReadyReportsProvider, ScanReport } from './providers/reportsProvider';
 import { ReportDetailView } from './providers/reportDetailView';
@@ -80,8 +80,37 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel,
     issuesProvider,
     summaryProvider,
+    reportsProvider,
     updateStatusBar,
     runVisualizer
+  );
+
+  // Register filter commands for Issues panel
+  context.subscriptions.push(
+    vscode.commands.registerCommand('aiready.issues.groupBySeverity', () => {
+      issuesProvider.setGroupBy('severity');
+    }),
+    vscode.commands.registerCommand('aiready.issues.groupByTool', () => {
+      issuesProvider.setGroupBy('tool');
+    }),
+    vscode.commands.registerCommand('aiready.issues.groupByFile', () => {
+      issuesProvider.setGroupBy('file');
+    }),
+    vscode.commands.registerCommand('aiready.issues.groupByNone', () => {
+      issuesProvider.setGroupBy('none');
+    }),
+    vscode.commands.registerCommand('aiready.issues.filterAll', () => {
+      issuesProvider.setSeverityFilter('all');
+    }),
+    vscode.commands.registerCommand('aiready.issues.filterCritical', () => {
+      issuesProvider.setSeverityFilter('critical');
+    }),
+    vscode.commands.registerCommand('aiready.issues.filterMajor', () => {
+      issuesProvider.setSeverityFilter('major');
+    }),
+    vscode.commands.registerCommand('aiready.issues.filterMinor', () => {
+      issuesProvider.setSeverityFilter('minor');
+    })
   );
 
   // Register commands
