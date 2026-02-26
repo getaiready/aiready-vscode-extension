@@ -81,6 +81,26 @@ interface AIReadyResult {
       }>;
     }>;
   };
+  docDrift?: {
+    issues: Array<{
+      severity: 'critical' | 'major' | 'minor' | 'info';
+      message: string;
+      location?: {
+        file: string;
+        line?: number;
+      };
+    }>;
+  };
+  deps?: {
+    issues: Array<{
+      severity: 'critical' | 'major' | 'minor' | 'info';
+      message: string;
+      location?: {
+        file: string;
+        line?: number;
+      };
+    }>;
+  };
   duplicates?: any[];
 }
 
@@ -92,7 +112,7 @@ function findLatestReport(workspacePath: string): string | null {
   if (!existsSync(aireadyDir)) {
     return null;
   }
-  
+
   const fs = require('fs');
   const files = fs.readdirSync(aireadyDir)
     .filter((f: string) => f.startsWith('aiready-report-') && f.endsWith('.json'))
@@ -102,7 +122,7 @@ function findLatestReport(workspacePath: string): string | null {
       mtime: fs.statSync(join(aireadyDir, f)).mtime
     }))
     .sort((a: any, b: any) => b.mtime.getTime() - a.mtime.getTime());
-  
+
   return files.length > 0 ? files[0].path : null;
 }
 
@@ -122,7 +142,7 @@ function getRatingFromScore(score: number): string {
  */
 function countIssues(result: AIReadyResult): { critical: number; major: number; minor: number; info: number; total: number } {
   const counts = { critical: 0, major: 0, minor: 0, info: 0, total: 0 };
-  
+
   // Count pattern issues
   result.patterns?.forEach(p => {
     p.issues?.forEach(issue => {
@@ -130,13 +150,13 @@ function countIssues(result: AIReadyResult): { critical: number; major: number; 
       counts.total++;
     });
   });
-  
+
   // Count context issues
   result.context?.forEach(issue => {
     counts[issue.severity] = (counts[issue.severity] || 0) + 1;
     counts.total++;
   });
-  
+
   // Count consistency issues
   result.consistency?.results?.forEach(r => {
     r.issues?.forEach(issue => {
@@ -144,7 +164,19 @@ function countIssues(result: AIReadyResult): { critical: number; major: number; 
       counts.total++;
     });
   });
-  
+
+  // Count doc drift issues
+  result.docDrift?.issues?.forEach(issue => {
+    counts[issue.severity] = (counts[issue.severity] || 0) + 1;
+    counts.total++;
+  });
+
+  // Count dependency issues
+  result.deps?.issues?.forEach(issue => {
+    counts[issue.severity] = (counts[issue.severity] || 0) + 1;
+    counts.total++;
+  });
+
   return counts;
 }
 
@@ -156,11 +188,11 @@ function extractBusinessMetrics(result: AIReadyResult): { estimatedMonthlyCost?:
   if (!breakdown || breakdown.length === 0) {
     return {};
   }
-  
+
   // Aggregate metrics from tool breakdowns
   let totalCost = 0;
   let totalHours = 0;
-  
+
   for (const tool of breakdown) {
     const metrics = tool.rawMetrics;
     if (metrics?.estimatedMonthlyCost) {
@@ -170,7 +202,7 @@ function extractBusinessMetrics(result: AIReadyResult): { estimatedMonthlyCost?:
       totalHours += metrics.estimatedDeveloperHours;
     }
   }
-  
+
   // Calculate AI acceptance rate from scores
   let aiAcceptanceRate: number | undefined;
   if (breakdown.length >= 2) {
@@ -183,7 +215,7 @@ function extractBusinessMetrics(result: AIReadyResult): { estimatedMonthlyCost?:
     }
     aiAcceptanceRate = Math.max(0.1, Math.min(0.95, rate));
   }
-  
+
   return {
     estimatedMonthlyCost: totalCost > 0 ? totalCost : undefined,
     estimatedDeveloperHours: totalHours > 0 ? totalHours : undefined,
@@ -234,16 +266,16 @@ export function createScanCommands(
       // Build CLI command - the CLI saves JSON to .aiready/ directory
       const toolsArg = tools.join(',');
       let cmd = `npx @aiready/cli scan --output json --tools ${toolsArg}`;
-      
+
       // Add path argument
       cmd += ` "${path}"`;
-      
+
       outputChannel.clear();
       outputChannel.appendLine('Running AIReady scan...');
       outputChannel.appendLine(`Command: ${cmd}`);
       outputChannel.appendLine('');
       outputChannel.show();
-      
+
       // Run the CLI command - it will save JSON to .aiready/ directory
       const { stdout, stderr } = await execAsync(cmd, {
         maxBuffer: 1024 * 1024 * 10,
@@ -256,30 +288,30 @@ export function createScanCommands(
         const cleanOutput = stdout.replace(/\x1b\[[0-9;]*m/g, '');
         outputChannel.appendLine(cleanOutput);
       }
-      
+
       if (stderr) {
         outputChannel.appendLine(`[stderr] ${stderr}`);
       }
 
       // Find and read the generated report file
       const reportPath = findLatestReport(workspacePath);
-      
+
       if (!reportPath) {
         throw new Error('No report file found. The CLI may have failed to generate output.');
       }
-      
+
       outputChannel.appendLine(`\n📄 Reading report: ${reportPath}`);
-      
+
       const jsonContent = readFileSync(reportPath, 'utf8');
       const result: AIReadyResult = JSON.parse(jsonContent);
 
       // Determine score - use scoring.overall if available
       const score = result.scoring?.overall ?? 0;
       const overallRating = result.scoring?.rating ?? 'Unknown';
-      
+
       // Count issues by severity
       const issueCounts = countIssues(result);
-      
+
       // Update status bar
       const passed = score >= threshold;
       updateStatusBar(
@@ -289,23 +321,29 @@ export function createScanCommands(
 
       // Update sidebar views - add tool information to each issue
       const allIssues: Issue[] = [
-        ...(result.patterns?.flatMap((p: any) => 
+        ...(result.patterns?.flatMap((p: any) =>
           (p.issues || []).map((issue: any) => ({ ...issue, tool: 'patterns' }))
         ) || []),
         ...(result.context?.map((issue: any) => ({ ...issue, tool: 'context' })) || []),
-        ...(result.consistency?.results?.flatMap((r: any) => 
+        ...(result.consistency?.results?.flatMap((r: any) =>
           (r.issues || []).map((issue: any) => ({ ...issue, tool: 'consistency' }))
-        ) || [])
+        ) || []),
+        ...(result.docDrift?.issues?.map((issue: any) => ({ ...issue, tool: 'doc-drift' })) || []),
+        ...(result.deps?.issues?.map((issue: any) => ({ ...issue, tool: 'deps-health' })) || [])
       ];
-      
+
       // Extract business metrics
       const businessMetrics = extractBusinessMetrics(result);
-      
+
       const summary: Summary = {
         score,
         issues: issueCounts.critical + issueCounts.major,
         warnings: issueCounts.minor + issueCounts.info,
-        breakdown: result.scoring?.breakdown,
+        breakdown: result.scoring?.breakdown?.map(tool => ({
+          toolName: tool.toolName,
+          score: tool.score,
+          rating: tool.rating || getRatingFromScore(tool.score)
+        })),
         issueBreakdown: {
           critical: issueCounts.critical,
           major: issueCounts.major,
@@ -315,7 +353,7 @@ export function createScanCommands(
         ...businessMetrics
       };
       summaryProvider.refresh(summary);
-      
+
       // Refresh reports list
       if (reportsProvider) {
         reportsProvider.refresh(workspacePath);
@@ -327,10 +365,10 @@ export function createScanCommands(
       outputChannel.appendLine('       AIReady Analysis Results        ');
       outputChannel.appendLine('═══════════════════════════════════════');
       outputChannel.appendLine('');
-      
+
       // Show AI Readiness Score
       outputChannel.appendLine(`AI Readiness Score: ${score}/100 (${overallRating})`);
-      
+
       // Show tool breakdown if available
       if (result.scoring?.breakdown && result.scoring.breakdown.length > 0) {
         outputChannel.appendLine('');
@@ -341,17 +379,17 @@ export function createScanCommands(
           outputChannel.appendLine(`  - ${tool.toolName}: ${tool.score}/100 (${toolRating})`);
         });
       }
-      
+
       outputChannel.appendLine('');
       outputChannel.appendLine(`Issues:   ${issueCounts.total} (critical: ${issueCounts.critical}, major: ${issueCounts.major}, minor: ${issueCounts.minor})`);
       outputChannel.appendLine(`Status:   ${passed ? '✅ PASSED' : '❌ FAILED'}`);
-      
+
       // Show business metrics if available
       if (businessMetrics.estimatedMonthlyCost || businessMetrics.estimatedDeveloperHours || businessMetrics.aiAcceptanceRate) {
         outputChannel.appendLine('');
         outputChannel.appendLine('💰 Business Impact:');
         if (businessMetrics.estimatedMonthlyCost) {
-          const costFormatted = businessMetrics.estimatedMonthlyCost >= 1000 
+          const costFormatted = businessMetrics.estimatedMonthlyCost >= 1000
             ? `$${(businessMetrics.estimatedMonthlyCost / 1000).toFixed(1)}k`
             : `$${businessMetrics.estimatedMonthlyCost.toFixed(0)}`;
           outputChannel.appendLine(`   Monthly Cost: ${costFormatted}/month (AI context waste)`);
@@ -363,9 +401,9 @@ export function createScanCommands(
           outputChannel.appendLine(`   AI Acceptance: ${Math.round(businessMetrics.aiAcceptanceRate * 100)}%`);
         }
       }
-      
+
       outputChannel.appendLine('');
-      
+
       // Show summary if available
       if (result.summary) {
         outputChannel.appendLine(`Tools run: ${result.summary.toolsRun.join(', ')}`);
@@ -379,7 +417,7 @@ export function createScanCommands(
         'Visualize',
         'View Report'
       );
-      
+
       if (action === 'Visualize') {
         await runVisualizer();
       } else if (action === 'View Report') {
