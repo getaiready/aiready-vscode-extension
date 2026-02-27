@@ -8,13 +8,15 @@ export function generateScoreGauge(score: number, size: number = 200): string {
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   const offset = circumference - progress;
-  
+
   // Color based on score
   let color: string;
-  if (score >= 70) color = '#22c55e'; // green
-  else if (score >= 50) color = '#eab308'; // yellow
+  if (score >= 70)
+    color = '#22c55e'; // green
+  else if (score >= 50)
+    color = '#eab308'; // yellow
   else color = '#ef4444'; // red
-  
+
   return `
 <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
   <style>
@@ -23,11 +25,11 @@ export function generateScoreGauge(score: number, size: number = 200): string {
     .gauge-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 36px; font-weight: bold; fill: #f9fafb; text-anchor: middle; }
     .gauge-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #9ca3af; text-anchor: middle; }
   </style>
-  <circle class="gauge-bg" cx="${size/2}" cy="${size/2}" r="${radius}" />
-  <circle class="gauge-progress" cx="${size/2}" cy="${size/2}" r="${radius}" 
+  <circle class="gauge-bg" cx="${size / 2}" cy="${size / 2}" r="${radius}" />
+  <circle class="gauge-progress" cx="${size / 2}" cy="${size / 2}" r="${radius}" 
     stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" />
-  <text class="gauge-text" x="${size/2}" y="${size/2 + 8}">${score}</text>
-  <text class="gauge-label" x="${size/2}" y="${size/2 + 30}">AI Readiness Score</text>
+  <text class="gauge-text" x="${size / 2}" y="${size / 2 + 8}">${score}</text>
+  <text class="gauge-label" x="${size / 2}" y="${size / 2 + 30}">AI Readiness Score</text>
 </svg>
 `;
 }
@@ -46,32 +48,34 @@ export function generateIssueBreakdownChart(
   const maxValue = Math.max(critical, major, minor, info, 1);
   const barWidth = (width - 100) / 4;
   const chartHeight = height - 40;
-  
+
   const getHeight = (value: number) => (value / maxValue) * chartHeight;
-  
+
   const data = [
     { label: 'Critical', value: critical, color: '#ef4444' },
     { label: 'Major', value: major, color: '#f97316' },
     { label: 'Minor', value: minor, color: '#eab308' },
-    { label: 'Info', value: info, color: '#3b82f6' }
+    { label: 'Info', value: info, color: '#3b82f6' },
   ];
-  
+
   return `
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
   <style>
     .bar-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #9ca3af; text-anchor: middle; }
     .bar-value { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: bold; fill: #f9fafb; text-anchor: middle; }
   </style>
-  ${data.map((d, i) => {
-    const barHeight = getHeight(d.value);
-    const x = 30 + i * barWidth + 10;
-    const y = chartHeight - barHeight + 10;
-    return `
+  ${data
+    .map((d, i) => {
+      const barHeight = getHeight(d.value);
+      const x = 30 + i * barWidth + 10;
+      const y = chartHeight - barHeight + 10;
+      return `
     <rect x="${x}" y="${y}" width="${barWidth - 10}" height="${barHeight}" rx="4" fill="${d.color}" />
     <text class="bar-value" x="${x + (barWidth - 10) / 2}" y="${y - 5}">${d.value}</text>
     <text class="bar-label" x="${x + (barWidth - 10) / 2}" y="${chartHeight + 25}">${d.label}</text>
     `;
-  }).join('')}
+    })
+    .join('')}
 </svg>
 `;
 }
@@ -86,14 +90,14 @@ export function generateToolScoresChart(
 ): string {
   if (tools.length === 0) {
     return `<svg width="${width}" height="50" viewBox="0 0 ${width} 50" xmlns="http://www.w3.org/2000/svg">
-      <text x="${width/2}" y="30" font-family="sans-serif" font-size="14" fill="#9ca3af" text-anchor="middle">No tool breakdown available</text>
+      <text x="${width / 2}" y="30" font-family="sans-serif" font-size="14" fill="#9ca3af" text-anchor="middle">No tool breakdown available</text>
     </svg>`;
   }
-  
+
   const barHeight = 24;
   const chartHeight = tools.length * (barHeight + 12) + 20;
   const maxBarWidth = width - 120;
-  
+
   return `
 <svg width="${width}" height="${chartHeight}" viewBox="0 0 ${width} ${chartHeight}" xmlns="http://www.w3.org/2000/svg">
   <style>
@@ -101,18 +105,21 @@ export function generateToolScoresChart(
     .tool-score { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: bold; fill: #f9fafb; text-anchor: end; }
     .tool-bar-bg { fill: #374151; rx: 4; }
   </style>
-  ${tools.map((tool, i) => {
-    const y = 20 + i * (barHeight + 12);
-    const barWidth = (tool.score / 100) * maxBarWidth;
-    const color = tool.score >= 70 ? '#22c55e' : tool.score >= 50 ? '#eab308' : '#ef4444';
-    
-    return `
+  ${tools
+    .map((tool, i) => {
+      const y = 20 + i * (barHeight + 12);
+      const barWidth = (tool.score / 100) * maxBarWidth;
+      const color =
+        tool.score >= 70 ? '#22c55e' : tool.score >= 50 ? '#eab308' : '#ef4444';
+
+      return `
     <text class="tool-name" x="0" y="${y + 16}">${tool.name}</text>
     <rect class="tool-bar-bg" x="90" y="${y}" width="${maxBarWidth}" height="${barHeight}" />
     <rect x="90" y="${y}" width="${barWidth}" height="${barHeight}" rx="4" fill="${color}" />
     <text class="tool-score" x="${90 + maxBarWidth + 5}" y="${y + 16}">${tool.score}/100</text>
     `;
-  }).join('')}
+    })
+    .join('')}
 </svg>
 `;
 }
@@ -127,28 +134,31 @@ export function generateSparklineChart(
 ): string {
   if (scores.length < 2) {
     return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <text x="${width/2}" y="25" font-family="sans-serif" font-size="12" fill="#9ca3af" text-anchor="middle">Need more data points</text>
+      <text x="${width / 2}" y="25" font-family="sans-serif" font-size="12" fill="#9ca3af" text-anchor="middle">Need more data points</text>
     </svg>`;
   }
-  
+
   const padding = 5;
   const chartWidth = width - padding * 2;
   const chartHeight = height - padding * 2;
   const minScore = Math.min(...scores) - 10;
   const maxScore = Math.max(...scores) + 10;
   const scoreRange = maxScore - minScore;
-  
-  const points = scores.map((score, i) => {
-    const x = padding + (i / (scores.length - 1)) * chartWidth;
-    const y = padding + chartHeight - ((score - minScore) / scoreRange) * chartHeight;
-    return `${x},${y}`;
-  }).join(' ');
-  
+
+  const points = scores
+    .map((score, i) => {
+      const x = padding + (i / (scores.length - 1)) * chartWidth;
+      const y =
+        padding + chartHeight - ((score - minScore) / scoreRange) * chartHeight;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
   // Determine color based on trend
   const firstScore = scores[0];
   const lastScore = scores[scores.length - 1];
   const color = lastScore >= firstScore ? '#22c55e' : '#ef4444';
-  
+
   return `
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
   <style>
@@ -164,11 +174,14 @@ export function generateSparklineChart(
   </defs>
   <path class="sparkline-area" d="M${padding},${padding + chartHeight} ${points} ${padding + chartWidth},${padding + chartHeight} Z" fill="url(#sparkGradient)" />
   <path class="sparkline-line" d="M${points}" />
-  ${scores.map((score, i) => {
-    const x = padding + (i / (scores.length - 1)) * chartWidth;
-    const y = padding + chartHeight - ((score - minScore) / scoreRange) * chartHeight;
-    return `<circle class="sparkline-dot" cx="${x}" cy="${y}" r="3" />`;
-  }).join('')}
+  ${scores
+    .map((score, i) => {
+      const x = padding + (i / (scores.length - 1)) * chartWidth;
+      const y =
+        padding + chartHeight - ((score - minScore) / scoreRange) * chartHeight;
+      return `<circle class="sparkline-dot" cx="${x}" cy="${y}" r="3" />`;
+    })
+    .join('')}
 </svg>
 `;
 }
@@ -176,7 +189,10 @@ export function generateSparklineChart(
 /**
  * Generate the full HTML for the report detail view
  */
-export function generateReportDetailHTML(report: ScanReport, recentScores: number[] = []): string {
+export function generateReportDetailHTML(
+  report: ScanReport,
+  recentScores: number[] = []
+): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -290,7 +306,9 @@ export function generateReportDetailHTML(report: ScanReport, recentScores: numbe
       ${generateToolScoresChart(report.tools)}
     </div>
     
-    ${recentScores.length >= 2 ? `
+    ${
+      recentScores.length >= 2
+        ? `
     <div class="card">
       <div class="card-title">Score Trend</div>
       <div class="trend-container">
@@ -298,7 +316,9 @@ export function generateReportDetailHTML(report: ScanReport, recentScores: numbe
         ${generateSparklineChart(recentScores)}
       </div>
     </div>
-    ` : ''}
+    `
+        : ''
+    }
   </div>
 </body>
 </html>

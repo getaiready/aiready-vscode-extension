@@ -15,12 +15,14 @@
 ## Installation
 
 ### From VS Code Marketplace
+
 1. Open VS Code
 2. Go to Extensions (Cmd+Shift+X)
 3. Search for "AIReady"
 4. Click Install
 
 ### Manual Installation
+
 ```bash
 # Install from VSIX
 code --install-extension aiready-vsix
@@ -30,22 +32,22 @@ code --install-extension aiready-vsix
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `AIReady: Scan Workspace` | Run full AI readiness analysis |
-| `AIReady: Quick Scan (Current File)` | Analyze only the active file |
-| `AIReady: Show Report` | Open the output panel with details |
-| `AIReady: Open Settings` | Configure AIReady options |
+| Command                              | Description                        |
+| ------------------------------------ | ---------------------------------- |
+| `AIReady: Scan Workspace`            | Run full AI readiness analysis     |
+| `AIReady: Quick Scan (Current File)` | Analyze only the active file       |
+| `AIReady: Show Report`               | Open the output panel with details |
+| `AIReady: Open Settings`             | Configure AIReady options          |
 
 ### Configuration
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `aiready.threshold` | `70` | Minimum score to pass |
-| `aiready.failOn` | `critical` | Severity level to fail on |
-| `aiready.tools` | `["patterns", "context", "consistency"]` | Tools to run |
-| `aiready.autoScan` | `false` | Auto-scan on file save |
-| `aiready.showStatusBar` | `true` | Show score in status bar |
+| Setting                 | Default                                  | Description               |
+| ----------------------- | ---------------------------------------- | ------------------------- |
+| `aiready.threshold`     | `70`                                     | Minimum score to pass     |
+| `aiready.failOn`        | `critical`                               | Severity level to fail on |
+| `aiready.tools`         | `["patterns", "context", "consistency"]` | Tools to run              |
+| `aiready.autoScan`      | `false`                                  | Auto-scan on file save    |
+| `aiready.showStatusBar` | `true`                                   | Show score in status bar  |
 
 ### Status Bar
 
@@ -58,16 +60,19 @@ The extension shows your AI readiness score in the status bar:
 ## What AIReady Detects
 
 ### Pattern Detection
+
 - Semantic duplicates (same logic, different code)
 - Copy-paste code patterns
 - Similar function implementations
 
 ### Context Analysis
+
 - Deep import chains
 - Context window cost estimation
 - Files that fragment AI understanding
 
 ### Consistency Check
+
 - Naming convention violations
 - Inconsistent patterns across codebase
 - Mixed coding styles
@@ -87,6 +92,7 @@ The extension shows your AI readiness score in the status bar:
 ### 0.1.0
 
 Initial release:
+
 - Workspace scanning
 - Quick file scan
 - Issue explorer

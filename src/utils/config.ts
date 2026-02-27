@@ -16,9 +16,14 @@ export const SMART_DEFAULTS = {
   failOn: 'critical' as const,
   autoScan: false,
   showStatusBar: true,
-  excludePatterns: ['node_modules/**', 'dist/**', '.git/**', '**/*.min.js', '**/build/**'],
+  excludePatterns: [
+    'node_modules/**',
+    'dist/**',
+    '.git/**',
+    '**/*.min.js',
+    '**/build/**',
+  ],
 };
-
 
 export interface AIReadyConfig {
   threshold: number;
@@ -40,7 +45,12 @@ export function getMergedConfig(): AIReadyConfig {
     tools: config.get<string[]>('tools', [...SMART_DEFAULTS.tools]),
     failOn: config.get<string>('failOn', SMART_DEFAULTS.failOn),
     autoScan: config.get<boolean>('autoScan', SMART_DEFAULTS.autoScan),
-    showStatusBar: config.get<boolean>('showStatusBar', SMART_DEFAULTS.showStatusBar),
-    excludePatterns: config.get<string[]>('excludePatterns', [...SMART_DEFAULTS.excludePatterns]),
+    showStatusBar: config.get<boolean>(
+      'showStatusBar',
+      SMART_DEFAULTS.showStatusBar
+    ),
+    excludePatterns: config.get<string[]>('excludePatterns', [
+      ...SMART_DEFAULTS.excludePatterns,
+    ]),
   };
 }

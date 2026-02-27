@@ -7,7 +7,7 @@ export function extractJSON(output: string): string {
   if (jsonStart === -1) {
     return output; // No JSON found, return as-is
   }
-  
+
   // Find matching closing brace
   let depth = 0;
   let jsonEnd = -1;
@@ -19,10 +19,10 @@ export function extractJSON(output: string): string {
       break;
     }
   }
-  
+
   if (jsonEnd === -1) {
     return output; // Malformed JSON, return as-is
   }
-  
+
   return output.slice(jsonStart, jsonEnd);
 }

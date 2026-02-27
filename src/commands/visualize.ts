@@ -8,7 +8,6 @@ export function createVisualizeCommand(
   outputChannel: vscode.OutputChannel,
   updateStatusBar: (text: string, isError: boolean) => void
 ): { runVisualizer: () => Promise<void>; stopVisualizer: () => void } {
-
   function stopVisualizer(): void {
     if (visualizerProcess) {
       outputChannel.appendLine('');
@@ -18,7 +17,9 @@ export function createVisualizeCommand(
       updateStatusBar('$(shield) AIReady', false);
       outputChannel.appendLine('✅ Visualizer stopped.');
     } else {
-      vscode.window.showInformationMessage('AIReady: No visualizer is currently running.');
+      vscode.window.showInformationMessage(
+        'AIReady: No visualizer is currently running.'
+      );
     }
   }
 
@@ -33,13 +34,19 @@ export function createVisualizeCommand(
     if (visualizerProcess) {
       const choice = await vscode.window.showWarningMessage(
         'AIReady: Visualizer is already running. Restart it?',
-        'Restart', 'Stop', 'Cancel'
+        'Restart',
+        'Stop',
+        'Cancel'
       );
-      if (choice === 'Cancel' || choice === undefined) { return; }
+      if (choice === 'Cancel' || choice === undefined) {
+        return;
+      }
       stopVisualizer();
-      if (choice === 'Stop') { return; }
+      if (choice === 'Stop') {
+        return;
+      }
       // Small delay to let the port free up before restarting
-      await new Promise(resolve => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
 
     const workspacePath = workspaceFolders[0].uri.fsPath;
@@ -60,7 +67,7 @@ export function createVisualizeCommand(
       const child = spawn('npx', ['@aiready/cli', 'visualise'], {
         cwd: workspacePath,
         shell: true,
-        env: { ...process.env, FORCE_COLOR: '0' }
+        env: { ...process.env, FORCE_COLOR: '0' },
       });
 
       visualizerProcess = child;
@@ -69,7 +76,9 @@ export function createVisualizeCommand(
       child.stdout?.on('data', (data: Buffer) => {
         const text = data.toString();
         text.split('\n').forEach((line: string) => {
-          if (line.trim()) { outputChannel.appendLine(line); }
+          if (line.trim()) {
+            outputChannel.appendLine(line);
+          }
         });
 
         // Detect the local server URL once and offer to open it
@@ -78,30 +87,40 @@ export function createVisualizeCommand(
           if (match) {
             urlNotified = true;
             const url = match[0];
-            vscode.window.showInformationMessage(
-              `AIReady: Visualizer running at ${url}`,
-              'Open in Browser', 'Stop Visualizer'
-            ).then(action => {
-              if (action === 'Open in Browser') {
-                vscode.env.openExternal(vscode.Uri.parse(url));
-              } else if (action === 'Stop Visualizer') {
-                stopVisualizer();
-              }
-            });
+            vscode.window
+              .showInformationMessage(
+                `AIReady: Visualizer running at ${url}`,
+                'Open in Browser',
+                'Stop Visualizer'
+              )
+              .then((action) => {
+                if (action === 'Open in Browser') {
+                  vscode.env.openExternal(vscode.Uri.parse(url));
+                } else if (action === 'Stop Visualizer') {
+                  stopVisualizer();
+                }
+              });
           }
         }
       });
 
       child.stderr?.on('data', (data: Buffer) => {
-        data.toString().split('\n').forEach((line: string) => {
-          if (line.trim()) { outputChannel.appendLine(`[stderr] ${line}`); }
-        });
+        data
+          .toString()
+          .split('\n')
+          .forEach((line: string) => {
+            if (line.trim()) {
+              outputChannel.appendLine(`[stderr] ${line}`);
+            }
+          });
       });
 
       child.on('error', (error: Error) => {
         outputChannel.appendLine(`Error: ${error.message}`);
         updateStatusBar('$(shield) AIReady: Error', true);
-        vscode.window.showErrorMessage(`AIReady visualizer failed: ${error.message}`);
+        vscode.window.showErrorMessage(
+          `AIReady visualizer failed: ${error.message}`
+        );
         visualizerProcess = null;
       });
 
@@ -109,14 +128,15 @@ export function createVisualizeCommand(
         visualizerProcess = null;
         updateStatusBar('$(shield) AIReady', false);
         if (code !== 0 && code !== null) {
-          outputChannel.appendLine(`Visualizer process exited with code ${code}`);
+          outputChannel.appendLine(
+            `Visualizer process exited with code ${code}`
+          );
         } else {
           outputChannel.appendLine('Visualizer stopped.');
         }
       });
 
       updateStatusBar('$(graph) AIReady: Visualizer running', false);
-
     } catch (error) {
       updateStatusBar('$(shield) AIReady: Error', true);
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -133,44 +153,56 @@ export function createVisualizeCommand(
 /**
  * Install @aiready/visualizer in the workspace
  */
-async function installVisualizer(workspacePath: string, outputChannel: vscode.OutputChannel): Promise<void> {
+async function installVisualizer(
+  workspacePath: string,
+  outputChannel: vscode.OutputChannel
+): Promise<void> {
   outputChannel.appendLine('');
   outputChannel.appendLine('📦 Installing @aiready/visualizer...');
-  
+
   try {
     // Check if pnpm or npm is used
-    const usesPnpm = require('fs').existsSync(require('path').join(workspacePath, 'pnpm-lock.yaml'));
+    const usesPnpm = require('fs').existsSync(
+      require('path').join(workspacePath, 'pnpm-lock.yaml')
+    );
     const packageManager = usesPnpm ? 'pnpm' : 'npm';
-    
+
     outputChannel.appendLine(`Using ${packageManager} to install...`);
-    
+
     const child = spawn(packageManager, ['add', '-D', '@aiready/visualizer'], {
       cwd: workspacePath,
       shell: true,
-      env: { ...process.env, FORCE_COLOR: '0' }
+      env: { ...process.env, FORCE_COLOR: '0' },
     });
-    
+
     child.stdout?.on('data', (data: Buffer) => {
       outputChannel.appendLine(data.toString());
     });
-    
+
     child.stderr?.on('data', (data: Buffer) => {
       outputChannel.appendLine(`[stderr] ${data.toString()}`);
     });
-    
+
     child.on('close', (code: number) => {
       if (code === 0) {
-        outputChannel.appendLine('✅ @aiready/visualizer installed successfully!');
-        vscode.window.showInformationMessage('AIReady: Visualizer installed! Run the visualizer command again to start.');
+        outputChannel.appendLine(
+          '✅ @aiready/visualizer installed successfully!'
+        );
+        vscode.window.showInformationMessage(
+          'AIReady: Visualizer installed! Run the visualizer command again to start.'
+        );
       } else {
         outputChannel.appendLine(`❌ Installation failed with code ${code}`);
-        vscode.window.showErrorMessage('AIReady: Failed to install visualizer. Please install manually: npm install @aiready/visualizer');
+        vscode.window.showErrorMessage(
+          'AIReady: Failed to install visualizer. Please install manually: npm install @aiready/visualizer'
+        );
       }
     });
-    
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     outputChannel.appendLine(`❌ Installation error: ${message}`);
-    vscode.window.showErrorMessage(`AIReady: Failed to install visualizer: ${message}`);
+    vscode.window.showErrorMessage(
+      `AIReady: Failed to install visualizer: ${message}`
+    );
   }
 }

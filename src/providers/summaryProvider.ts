@@ -23,7 +23,9 @@ export interface Summary {
 
 // Tree item for summary view
 export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private _onDidChangeTreeData = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
+  private _onDidChangeTreeData = new vscode.EventEmitter<
+    vscode.TreeItem | undefined | null | void
+  >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private summary: Summary | null = null;
@@ -64,7 +66,9 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
     return `❌ ${score}`;
   }
 
-  getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
+  getChildren(
+    element?: vscode.TreeItem
+  ): vscode.ProviderResult<vscode.TreeItem[]> {
     if (!element) {
       if (!this.summary) {
         return [
@@ -73,25 +77,25 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
             iconPath: new vscode.ThemeIcon('play'),
             command: {
               command: 'aiready.scan',
-              title: 'Run Scan'
-            }
+              title: 'Run Scan',
+            },
           } as vscode.TreeItem,
           {
             label: '$(graph) Run Visualizer',
             iconPath: new vscode.ThemeIcon('graph'),
             command: {
               command: 'aiready.visualize',
-              title: 'Run Visualizer'
-            }
+              title: 'Run Visualizer',
+            },
           } as vscode.TreeItem,
           {
             label: '$(gear) Open Settings',
             iconPath: new vscode.ThemeIcon('gear'),
             command: {
               command: 'aiready.openSettings',
-              title: 'Open Settings'
-            }
-          } as vscode.TreeItem
+              title: 'Open Settings',
+            },
+          } as vscode.TreeItem,
         ];
       }
 
@@ -99,13 +103,17 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
 
       // Header with score gauge
       const scoreGauge = this.createScoreGauge(this.summary.score);
-      const statusText = this.summary.score >= 70 ? '✓ Passed' : 
-                        this.summary.score >= 50 ? '⚡ Needs Work' : '✗ Failing';
+      const statusText =
+        this.summary.score >= 70
+          ? '✓ Passed'
+          : this.summary.score >= 50
+            ? '⚡ Needs Work'
+            : '✗ Failing';
       items.push({
         label: `AI Readiness: ${scoreGauge}/100`,
         iconPath: new vscode.ThemeIcon(this.getScoreIcon(this.summary.score)),
         description: statusText,
-        contextValue: 'score'
+        contextValue: 'score',
       } as vscode.TreeItem);
 
       // Visual bar
@@ -113,13 +121,13 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
       items.push({
         label: `${bar} ${this.summary.score}%`,
         iconPath: new vscode.ThemeIcon('horizontal-line'),
-        contextValue: 'bar'
+        contextValue: 'bar',
       } as vscode.TreeItem);
 
       // Separator
       items.push({
         label: '─── Issues ───',
-        contextValue: 'separator'
+        contextValue: 'separator',
       } as vscode.TreeItem);
 
       // Issue counts with visual indicators
@@ -127,23 +135,23 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
       items.push({
         label: `🔴 Critical: ${this.summary.issueBreakdown?.critical || 0}`,
         iconPath: new vscode.ThemeIcon('error'),
-        contextValue: 'critical'
+        contextValue: 'critical',
       } as vscode.TreeItem);
       items.push({
         label: `🟡 Major: ${this.summary.issueBreakdown?.major || this.summary.issues}`,
         iconPath: new vscode.ThemeIcon('warning'),
-        contextValue: 'major'
+        contextValue: 'major',
       } as vscode.TreeItem);
       items.push({
         label: `🔵 Minor: ${this.summary.issueBreakdown?.minor || this.summary.warnings}`,
         iconPath: new vscode.ThemeIcon('info'),
-        contextValue: 'minor'
+        contextValue: 'minor',
       } as vscode.TreeItem);
 
       // Separator
       items.push({
         label: '─── Tool Scores ───',
-        contextValue: 'separator'
+        contextValue: 'separator',
       } as vscode.TreeItem);
 
       // Add tool breakdown with bars
@@ -153,51 +161,60 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
           items.push({
             label: `${bar} ${tool.score}`,
             iconPath: new vscode.ThemeIcon(
-              tool.score >= 70 ? 'check' : 
-              tool.score >= 50 ? 'warning' : 'error'
+              tool.score >= 70
+                ? 'check'
+                : tool.score >= 50
+                  ? 'warning'
+                  : 'error'
             ),
             description: tool.toolName,
-            tooltip: `${tool.toolName}: ${tool.score}/100 (${tool.rating})`
+            tooltip: `${tool.toolName}: ${tool.score}/100 (${tool.rating})`,
           } as vscode.TreeItem);
         });
       } else {
         // Show placeholder if no breakdown
         items.push({
           label: '─── Quick Actions ───',
-          contextValue: 'separator'
+          contextValue: 'separator',
         } as vscode.TreeItem);
       }
 
       // Business metrics section (v0.10+)
-      if (this.summary.estimatedMonthlyCost || this.summary.estimatedDeveloperHours || this.summary.aiAcceptanceRate) {
+      if (
+        this.summary.estimatedMonthlyCost ||
+        this.summary.estimatedDeveloperHours ||
+        this.summary.aiAcceptanceRate
+      ) {
         items.push({
           label: '─── Business Impact ───',
-          contextValue: 'separator'
+          contextValue: 'separator',
         } as vscode.TreeItem);
 
         // Monthly cost
         if (this.summary.estimatedMonthlyCost) {
-          const costFormatted = this.summary.estimatedMonthlyCost >= 1000 
-            ? `$${(this.summary.estimatedMonthlyCost / 1000).toFixed(1)}k`
-            : `$${this.summary.estimatedMonthlyCost.toFixed(0)}`;
+          const costFormatted =
+            this.summary.estimatedMonthlyCost >= 1000
+              ? `$${(this.summary.estimatedMonthlyCost / 1000).toFixed(1)}k`
+              : `$${this.summary.estimatedMonthlyCost.toFixed(0)}`;
           items.push({
             label: `💰 Monthly Cost: ${costFormatted}`,
             iconPath: new vscode.ThemeIcon('dollar'),
             description: 'AI context waste',
-            contextValue: 'metric'
+            contextValue: 'metric',
           } as vscode.TreeItem);
         }
 
         // Developer hours
         if (this.summary.estimatedDeveloperHours) {
-          const hoursFormatted = this.summary.estimatedDeveloperHours >= 40 
-            ? `${(this.summary.estimatedDeveloperHours / 40).toFixed(1)} weeks`
-            : `${this.summary.estimatedDeveloperHours.toFixed(1)}h`;
+          const hoursFormatted =
+            this.summary.estimatedDeveloperHours >= 40
+              ? `${(this.summary.estimatedDeveloperHours / 40).toFixed(1)} weeks`
+              : `${this.summary.estimatedDeveloperHours.toFixed(1)}h`;
           items.push({
             label: `⏱️ Fix Time: ${hoursFormatted}`,
             iconPath: new vscode.ThemeIcon('clock'),
             description: 'to resolve issues',
-            contextValue: 'metric'
+            contextValue: 'metric',
           } as vscode.TreeItem);
         }
 
@@ -208,7 +225,7 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
             label: `🤖 AI Acceptance: ${ratePercent}%`,
             iconPath: new vscode.ThemeIcon('lightbulb'),
             description: 'suggestion acceptance',
-            contextValue: 'metric'
+            contextValue: 'metric',
           } as vscode.TreeItem);
         }
       }
@@ -216,23 +233,23 @@ export class AIReadySummaryProvider implements vscode.TreeDataProvider<vscode.Tr
       // Add action buttons
       items.push({
         label: '',
-        contextValue: 'separator'
+        contextValue: 'separator',
       } as vscode.TreeItem);
       items.push({
         label: '$(play) Run Scan Again',
         iconPath: new vscode.ThemeIcon('play'),
         command: {
           command: 'aiready.scan',
-          title: 'Run Scan'
-        }
+          title: 'Run Scan',
+        },
       } as vscode.TreeItem);
       items.push({
         label: '$(graph) Open Charts',
         iconPath: new vscode.ThemeIcon('graph'),
         command: {
           command: 'aiready.visualize',
-          title: 'Run Visualizer'
-        }
+          title: 'Run Visualizer',
+        },
       } as vscode.TreeItem);
 
       return items;

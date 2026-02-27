@@ -114,12 +114,15 @@ function findLatestReport(workspacePath: string): string | null {
   }
 
   const fs = require('fs');
-  const files = fs.readdirSync(aireadyDir)
-    .filter((f: string) => f.startsWith('aiready-report-') && f.endsWith('.json'))
+  const files = fs
+    .readdirSync(aireadyDir)
+    .filter(
+      (f: string) => f.startsWith('aiready-report-') && f.endsWith('.json')
+    )
     .map((f: string) => ({
       name: f,
       path: join(aireadyDir, f),
-      mtime: fs.statSync(join(aireadyDir, f)).mtime
+      mtime: fs.statSync(join(aireadyDir, f)).mtime,
     }))
     .sort((a: any, b: any) => b.mtime.getTime() - a.mtime.getTime());
 
@@ -140,39 +143,45 @@ function getRatingFromScore(score: number): string {
 /**
  * Count issues by severity from all tools
  */
-function countIssues(result: AIReadyResult): { critical: number; major: number; minor: number; info: number; total: number } {
+function countIssues(result: AIReadyResult): {
+  critical: number;
+  major: number;
+  minor: number;
+  info: number;
+  total: number;
+} {
   const counts = { critical: 0, major: 0, minor: 0, info: 0, total: 0 };
 
   // Count pattern issues
-  result.patterns?.forEach(p => {
-    p.issues?.forEach(issue => {
+  result.patterns?.forEach((p) => {
+    p.issues?.forEach((issue) => {
       counts[issue.severity] = (counts[issue.severity] || 0) + 1;
       counts.total++;
     });
   });
 
   // Count context issues
-  result.context?.forEach(issue => {
+  result.context?.forEach((issue) => {
     counts[issue.severity] = (counts[issue.severity] || 0) + 1;
     counts.total++;
   });
 
   // Count consistency issues
-  result.consistency?.results?.forEach(r => {
-    r.issues?.forEach(issue => {
+  result.consistency?.results?.forEach((r) => {
+    r.issues?.forEach((issue) => {
       counts[issue.severity] = (counts[issue.severity] || 0) + 1;
       counts.total++;
     });
   });
 
   // Count doc drift issues
-  result.docDrift?.issues?.forEach(issue => {
+  result.docDrift?.issues?.forEach((issue) => {
     counts[issue.severity] = (counts[issue.severity] || 0) + 1;
     counts.total++;
   });
 
   // Count dependency issues
-  result.deps?.issues?.forEach(issue => {
+  result.deps?.issues?.forEach((issue) => {
     counts[issue.severity] = (counts[issue.severity] || 0) + 1;
     counts.total++;
   });
@@ -183,7 +192,11 @@ function countIssues(result: AIReadyResult): { critical: number; major: number; 
 /**
  * Extract business metrics from scoring breakdown (v0.10+)
  */
-function extractBusinessMetrics(result: AIReadyResult): { estimatedMonthlyCost?: number; estimatedDeveloperHours?: number; aiAcceptanceRate?: number } {
+function extractBusinessMetrics(result: AIReadyResult): {
+  estimatedMonthlyCost?: number;
+  estimatedDeveloperHours?: number;
+  aiAcceptanceRate?: number;
+} {
   const breakdown = result.scoring?.breakdown;
   if (!breakdown || breakdown.length === 0) {
     return {};
@@ -258,7 +271,8 @@ export function createScanCommands(
   async function runAIReady(path: string, quickScan = false): Promise<void> {
     const mergedConfig = getMergedConfig();
     const { threshold, tools } = mergedConfig;
-    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+    const workspacePath =
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
     updateStatusBar('$(sync~spin) Scanning...', false);
 
@@ -279,7 +293,7 @@ export function createScanCommands(
       // Run the CLI command - it will save JSON to .aiready/ directory
       const { stdout, stderr } = await execAsync(cmd, {
         maxBuffer: 1024 * 1024 * 10,
-        cwd: workspacePath
+        cwd: workspacePath,
       });
 
       // Show CLI output to user
@@ -297,7 +311,9 @@ export function createScanCommands(
       const reportPath = findLatestReport(workspacePath);
 
       if (!reportPath) {
-        throw new Error('No report file found. The CLI may have failed to generate output.');
+        throw new Error(
+          'No report file found. The CLI may have failed to generate output.'
+        );
       }
 
       outputChannel.appendLine(`\n📄 Reading report: ${reportPath}`);
@@ -314,22 +330,31 @@ export function createScanCommands(
 
       // Update status bar
       const passed = score >= threshold;
-      updateStatusBar(
-        `$(shield) AIReady: ${score}`,
-        !passed
-      );
+      updateStatusBar(`$(shield) AIReady: ${score}`, !passed);
 
       // Update sidebar views - add tool information to each issue
       const allIssues: Issue[] = [
         ...(result.patterns?.flatMap((p: any) =>
           (p.issues || []).map((issue: any) => ({ ...issue, tool: 'patterns' }))
         ) || []),
-        ...(result.context?.map((issue: any) => ({ ...issue, tool: 'context' })) || []),
+        ...(result.context?.map((issue: any) => ({
+          ...issue,
+          tool: 'context',
+        })) || []),
         ...(result.consistency?.results?.flatMap((r: any) =>
-          (r.issues || []).map((issue: any) => ({ ...issue, tool: 'consistency' }))
+          (r.issues || []).map((issue: any) => ({
+            ...issue,
+            tool: 'consistency',
+          }))
         ) || []),
-        ...(result.docDrift?.issues?.map((issue: any) => ({ ...issue, tool: 'doc-drift' })) || []),
-        ...(result.deps?.issues?.map((issue: any) => ({ ...issue, tool: 'deps-health' })) || [])
+        ...(result.docDrift?.issues?.map((issue: any) => ({
+          ...issue,
+          tool: 'doc-drift',
+        })) || []),
+        ...(result.deps?.issues?.map((issue: any) => ({
+          ...issue,
+          tool: 'deps-health',
+        })) || []),
       ];
 
       // Extract business metrics
@@ -339,18 +364,18 @@ export function createScanCommands(
         score,
         issues: issueCounts.critical + issueCounts.major,
         warnings: issueCounts.minor + issueCounts.info,
-        breakdown: result.scoring?.breakdown?.map(tool => ({
+        breakdown: result.scoring?.breakdown?.map((tool) => ({
           toolName: tool.toolName,
           score: tool.score,
-          rating: tool.rating || getRatingFromScore(tool.score)
+          rating: tool.rating || getRatingFromScore(tool.score),
         })),
         issueBreakdown: {
           critical: issueCounts.critical,
           major: issueCounts.major,
           minor: issueCounts.minor,
-          info: issueCounts.info
+          info: issueCounts.info,
         },
-        ...businessMetrics
+        ...businessMetrics,
       };
       summaryProvider.refresh(summary);
 
@@ -367,38 +392,57 @@ export function createScanCommands(
       outputChannel.appendLine('');
 
       // Show AI Readiness Score
-      outputChannel.appendLine(`AI Readiness Score: ${score}/100 (${overallRating})`);
+      outputChannel.appendLine(
+        `AI Readiness Score: ${score}/100 (${overallRating})`
+      );
 
       // Show tool breakdown if available
       if (result.scoring?.breakdown && result.scoring.breakdown.length > 0) {
         outputChannel.appendLine('');
         outputChannel.appendLine('Tool Breakdown:');
-        result.scoring.breakdown.forEach(tool => {
+        result.scoring.breakdown.forEach((tool) => {
           // Derive rating from score if not provided
           const toolRating = tool.rating || getRatingFromScore(tool.score);
-          outputChannel.appendLine(`  - ${tool.toolName}: ${tool.score}/100 (${toolRating})`);
+          outputChannel.appendLine(
+            `  - ${tool.toolName}: ${tool.score}/100 (${toolRating})`
+          );
         });
       }
 
       outputChannel.appendLine('');
-      outputChannel.appendLine(`Issues:   ${issueCounts.total} (critical: ${issueCounts.critical}, major: ${issueCounts.major}, minor: ${issueCounts.minor})`);
-      outputChannel.appendLine(`Status:   ${passed ? '✅ PASSED' : '❌ FAILED'}`);
+      outputChannel.appendLine(
+        `Issues:   ${issueCounts.total} (critical: ${issueCounts.critical}, major: ${issueCounts.major}, minor: ${issueCounts.minor})`
+      );
+      outputChannel.appendLine(
+        `Status:   ${passed ? '✅ PASSED' : '❌ FAILED'}`
+      );
 
       // Show business metrics if available
-      if (businessMetrics.estimatedMonthlyCost || businessMetrics.estimatedDeveloperHours || businessMetrics.aiAcceptanceRate) {
+      if (
+        businessMetrics.estimatedMonthlyCost ||
+        businessMetrics.estimatedDeveloperHours ||
+        businessMetrics.aiAcceptanceRate
+      ) {
         outputChannel.appendLine('');
         outputChannel.appendLine('💰 Business Impact:');
         if (businessMetrics.estimatedMonthlyCost) {
-          const costFormatted = businessMetrics.estimatedMonthlyCost >= 1000
-            ? `$${(businessMetrics.estimatedMonthlyCost / 1000).toFixed(1)}k`
-            : `$${businessMetrics.estimatedMonthlyCost.toFixed(0)}`;
-          outputChannel.appendLine(`   Monthly Cost: ${costFormatted}/month (AI context waste)`);
+          const costFormatted =
+            businessMetrics.estimatedMonthlyCost >= 1000
+              ? `$${(businessMetrics.estimatedMonthlyCost / 1000).toFixed(1)}k`
+              : `$${businessMetrics.estimatedMonthlyCost.toFixed(0)}`;
+          outputChannel.appendLine(
+            `   Monthly Cost: ${costFormatted}/month (AI context waste)`
+          );
         }
         if (businessMetrics.estimatedDeveloperHours) {
-          outputChannel.appendLine(`   Fix Time: ${businessMetrics.estimatedDeveloperHours.toFixed(1)}h`);
+          outputChannel.appendLine(
+            `   Fix Time: ${businessMetrics.estimatedDeveloperHours.toFixed(1)}h`
+          );
         }
         if (businessMetrics.aiAcceptanceRate) {
-          outputChannel.appendLine(`   AI Acceptance: ${Math.round(businessMetrics.aiAcceptanceRate * 100)}%`);
+          outputChannel.appendLine(
+            `   AI Acceptance: ${Math.round(businessMetrics.aiAcceptanceRate * 100)}%`
+          );
         }
       }
 
@@ -406,8 +450,12 @@ export function createScanCommands(
 
       // Show summary if available
       if (result.summary) {
-        outputChannel.appendLine(`Tools run: ${result.summary.toolsRun.join(', ')}`);
-        outputChannel.appendLine(`Execution time: ${(result.summary.executionTime / 1000).toFixed(2)}s`);
+        outputChannel.appendLine(
+          `Tools run: ${result.summary.toolsRun.join(', ')}`
+        );
+        outputChannel.appendLine(
+          `Execution time: ${(result.summary.executionTime / 1000).toFixed(2)}s`
+        );
         outputChannel.appendLine('');
       }
 
@@ -423,7 +471,6 @@ export function createScanCommands(
       } else if (action === 'View Report') {
         outputChannel.show();
       }
-
     } catch (error) {
       updateStatusBar('$(shield) AIReady: Error', true);
       const message = error instanceof Error ? error.message : 'Unknown error';
