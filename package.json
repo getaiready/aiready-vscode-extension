@@ -46,8 +46,23 @@
   ],
   "activationEvents": [
     "onStartupFinished",
+    "onView:aiready.summary",
+    "onView:aiready.issues",
+    "onView:aiready.reports",
     "onCommand:aiready.scan",
-    "onCommand:aiready.showReport"
+    "onCommand:aiready.visualize",
+    "onCommand:aiready.showReport",
+    "onCommand:aiready.openSettings",
+    "onCommand:aiready.stopVisualizer",
+    "onCommand:aiready.quickScan",
+    "onCommand:aiready.issues.groupBySeverity",
+    "onCommand:aiready.issues.groupByTool",
+    "onCommand:aiready.issues.groupByFile",
+    "onCommand:aiready.issues.groupByNone",
+    "onCommand:aiready.issues.filterAll",
+    "onCommand:aiready.issues.filterCritical",
+    "onCommand:aiready.issues.filterMajor",
+    "onCommand:aiready.issues.filterMinor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
