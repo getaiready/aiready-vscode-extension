@@ -381,7 +381,7 @@ export function createScanCommands(
 
       // Refresh reports list
       if (reportsProvider) {
-        reportsProvider.refresh(workspacePath);
+        reportsProvider.refresh();
       }
 
       // Update issues in the sidebar
@@ -485,6 +485,3 @@ export function createScanCommands(
 
   return { scanWorkspace, quickScan };
 }
-
-// Reference quickScan to silence some linters that flag it as unused in certain configs
-void quickScan;

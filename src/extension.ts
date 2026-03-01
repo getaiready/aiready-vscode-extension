@@ -35,64 +35,11 @@ export function activate(context: vscode.ExtensionContext) {
   try {
     console.log('AIReady extension is now active!');
 
-    // Create output channel
+    // Create output channel early for logging
     outputChannel = vscode.window.createOutputChannel('AIReady');
+    context.subscriptions.push(outputChannel);
 
-    // Create tree data providers
-    const issuesProvider = new AIReadyIssuesProvider();
-    const summaryProvider = new AIReadySummaryProvider();
-
-    // Create reports provider and detail view
-    reportsProvider = new AIReadyReportsProvider();
-    reportDetailView = new ReportDetailView(context);
-
-    // Register tree views
-    const issuesView = vscode.window.createTreeView('aiready.issues', {
-      treeDataProvider: issuesProvider,
-      showCollapseAll: false,
-    });
-
-    const summaryView = vscode.window.createTreeView('aiready.summary', {
-      treeDataProvider: summaryProvider,
-      showCollapseAll: false,
-    });
-
-    const reportsView = vscode.window.createTreeView('aiready.reports', {
-      treeDataProvider: reportsProvider,
-      showCollapseAll: false,
-    });
-
-    context.subscriptions.push(issuesView, summaryView, reportsView);
-
-    // Initialize views
-    issuesProvider.refresh();
-    summaryProvider.refresh();
-
-    // Load existing reports on startup
-    const getWorkspacePath = () => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-
-    reportsProvider.refresh(getWorkspacePath());
-
-    // Refresh when workspace folders change
-    context.subscriptions.push(
-      vscode.workspace.onDidChangeWorkspaceFolders(() => {
-        reportsProvider.refresh(getWorkspacePath());
-        issuesProvider.refresh([]); // Clear issues when switching workspace
-        summaryProvider.refresh(null);
-      })
-    );
-
-    // Register showReportDetail command
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'aiready.showReportDetail',
-        (report: ScanReport) => {
-          reportDetailView.showReport(report);
-        }
-      )
-    );
-
-    // Create status bar item
+    // Create status bar item early
     statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
       100
@@ -100,7 +47,16 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.command = 'aiready.showReport';
     context.subscriptions.push(statusBarItem);
 
-    // Create visualize command first (needed by scan commands)
+    // 1. REGISTER COMMANDS FIRST - to avoid "command not found" errors
+    // We register placeholders if dependencies aren't ready yet, or just register them now
+
+    // Data Providers (needed for commands)
+    const issuesProvider = new AIReadyIssuesProvider();
+    const summaryProvider = new AIReadySummaryProvider();
+    reportsProvider = new AIReadyReportsProvider();
+    reportDetailView = new ReportDetailView(context);
+
+    // Create visualize command
     const { runVisualizer, stopVisualizer } = createVisualizeCommand(
       outputChannel,
       updateStatusBar
@@ -117,7 +73,30 @@ export function activate(context: vscode.ExtensionContext) {
       runVisualizer
     );
 
-    // Register filter commands for Issues panel
+    // Register all commands
+    context.subscriptions.push(
+      vscode.commands.registerCommand('aiready.scan', scanWorkspace),
+      vscode.commands.registerCommand('aiready.quickScan', quickScan),
+      vscode.commands.registerCommand('aiready.visualize', runVisualizer),
+      vscode.commands.registerCommand('aiready.stopVisualizer', stopVisualizer),
+      vscode.commands.registerCommand('aiready.showReport', () =>
+        outputChannel.show()
+      ),
+      vscode.commands.registerCommand('aiready.openSettings', () =>
+        vscode.commands.executeCommand(
+          'workbench.action.openSettings',
+          'aiready'
+        )
+      ),
+      vscode.commands.registerCommand(
+        'aiready.showReportDetail',
+        (report: ScanReport) => {
+          reportDetailView.showReport(report);
+        }
+      )
+    );
+
+    // Filter commands for Issues panel
     context.subscriptions.push(
       vscode.commands.registerCommand('aiready.issues.groupBySeverity', () => {
         issuesProvider.setGroupBy('severity');
@@ -145,24 +124,42 @@ export function activate(context: vscode.ExtensionContext) {
       })
     );
 
-    // Register commands
+    // 2. REGISTER TREE VIEWS
+    const issuesView = vscode.window.createTreeView('aiready.issues', {
+      treeDataProvider: issuesProvider,
+      showCollapseAll: false,
+    });
+
+    const summaryView = vscode.window.createTreeView('aiready.summary', {
+      treeDataProvider: summaryProvider,
+      showCollapseAll: false,
+    });
+
+    const reportsView = vscode.window.createTreeView('aiready.reports', {
+      treeDataProvider: reportsProvider,
+      showCollapseAll: false,
+    });
+
+    context.subscriptions.push(issuesView, summaryView, reportsView);
+
+    // 3. INITIALIZE DATA
+    issuesProvider.refresh();
+    summaryProvider.refresh();
+
+    // Load existing reports on startup
+    const getWorkspacePath = () => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    reportsProvider.refresh();
+
+    // Refresh when workspace folders change
     context.subscriptions.push(
-      vscode.commands.registerCommand('aiready.scan', scanWorkspace),
-      vscode.commands.registerCommand('aiready.quickScan', quickScan),
-      vscode.commands.registerCommand('aiready.visualize', runVisualizer),
-      vscode.commands.registerCommand('aiready.stopVisualizer', stopVisualizer),
-      vscode.commands.registerCommand('aiready.showReport', () =>
-        outputChannel.show()
-      ),
-      vscode.commands.registerCommand('aiready.openSettings', () =>
-        vscode.commands.executeCommand(
-          'workbench.action.openSettings',
-          'aiready'
-        )
-      )
+      vscode.workspace.onDidChangeWorkspaceFolders(() => {
+        reportsProvider.refresh();
+        issuesProvider.refresh([]); // Clear issues when switching workspace
+        summaryProvider.refresh(null);
+      })
     );
 
-    // Show initial status bar
+    // Show initial status bar if enabled
     const config = vscode.workspace.getConfiguration('aiready');
     if (config.get<boolean>('showStatusBar', SMART_DEFAULTS.showStatusBar)) {
       updateStatusBar('$(shield) AIReady', false);

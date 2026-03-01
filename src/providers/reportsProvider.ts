@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { existsSync, readdirSync, statSync, readFileSync } from 'fs';
-import { join, basename } from 'path';
+import { join, basename, dirname, parse } from 'path';
 
 export interface ScanReport {
   id: string;
@@ -22,10 +22,10 @@ export interface ScanReport {
 }
 
 /**
- * Find all AIReady report files in the workspace
+ * Find all AIReady report files in a specific directory
  */
-export function findAllReports(workspacePath: string): ScanReport[] {
-  const aireadyDir = join(workspacePath, '.aiready');
+function findReportsInDir(dir: string): ScanReport[] {
+  const aireadyDir = join(dir, '.aiready');
 
   if (!existsSync(aireadyDir)) {
     return [];
@@ -45,7 +45,6 @@ export function findAllReports(workspacePath: string): ScanReport[] {
       })
       .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
 
-    // Parse each report file to extract metadata
     const reports: ScanReport[] = [];
 
     for (const file of files) {
@@ -53,23 +52,19 @@ export function findAllReports(workspacePath: string): ScanReport[] {
         const content = readFileSync(file.path, 'utf8');
         const data = JSON.parse(content);
 
-        // Extract score
         const score = data.scoring?.overall ?? 0;
         const rating = data.scoring?.rating ?? 'Unknown';
 
-        // Extract timestamp from report
         const timestamp = data.scoring?.timestamp
           ? new Date(data.scoring.timestamp)
           : file.mtime;
 
-        // Count issues
         let totalIssues = 0;
         let criticalIssues = 0;
         let majorIssues = 0;
         let minorIssues = 0;
         let infoIssues = 0;
 
-        // Pattern issues
         data.patterns?.forEach((p: any) => {
           p.issues?.forEach((issue: any) => {
             totalIssues++;
@@ -80,7 +75,6 @@ export function findAllReports(workspacePath: string): ScanReport[] {
           });
         });
 
-        // Context issues
         data.context?.forEach((issue: any) => {
           totalIssues++;
           if (issue.severity === 'critical') criticalIssues++;
@@ -89,7 +83,6 @@ export function findAllReports(workspacePath: string): ScanReport[] {
           else infoIssues++;
         });
 
-        // Consistency issues
         data.consistency?.results?.forEach((r: any) => {
           r.issues?.forEach((issue: any) => {
             totalIssues++;
@@ -100,7 +93,6 @@ export function findAllReports(workspacePath: string): ScanReport[] {
           });
         });
 
-        // Extract tool breakdown
         const tools: Array<{ name: string; score: number; rating: string }> =
           [];
         data.scoring?.breakdown?.forEach((tool: any) => {
@@ -126,16 +118,60 @@ export function findAllReports(workspacePath: string): ScanReport[] {
           tools,
         });
       } catch (e) {
-        // Skip invalid files
         console.error(`Failed to parse report ${file.path}:`, e);
       }
     }
 
     return reports;
   } catch (e) {
-    console.error('Error reading .aiready directory:', e);
+    console.error(`Error reading ${aireadyDir} directory:`, e);
     return [];
   }
+}
+
+/**
+ * Find all AIReady report files in the workspace (all folders + upward search)
+ */
+export function findAllReports(): ScanReport[] {
+  const reports: ScanReport[] = [];
+  const seenPaths = new Set<string>();
+
+  // 1. Search all workspace folders
+  const workspaceFolders = vscode.workspace.workspaceFolders || [];
+  for (const folder of workspaceFolders) {
+    const folderReports = findReportsInDir(folder.uri.fsPath);
+    for (const report of folderReports) {
+      if (!seenPaths.has(report.filePath)) {
+        reports.push(report);
+        seenPaths.add(report.filePath);
+      }
+    }
+  }
+
+  // 2. Upward search from active editor
+  const activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor && activeEditor.document.uri.scheme === 'file') {
+    let currentDir = dirname(activeEditor.document.uri.fsPath);
+    const rootPath = parse(currentDir).root;
+
+    // Search up to 5 levels or until root
+    for (let i = 0; i < 5; i++) {
+      const dirReports = findReportsInDir(currentDir);
+      for (const report of dirReports) {
+        if (!seenPaths.has(report.filePath)) {
+          reports.push(report);
+          seenPaths.add(report.filePath);
+        }
+      }
+
+      const parentDir = dirname(currentDir);
+      if (parentDir === currentDir || currentDir === rootPath) break;
+      currentDir = parentDir;
+    }
+  }
+
+  // Sort all reports by timestamp descending
+  return reports.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 function getRatingFromScore(score: number): string {
@@ -156,11 +192,8 @@ export class AIReadyReportsProvider implements vscode.TreeDataProvider<vscode.Tr
   private reports: ScanReport[] = [];
   private workspacePath: string = '';
 
-  refresh(workspacePath?: string): void {
-    if (workspacePath) {
-      this.workspacePath = workspacePath;
-    }
-    this.reports = this.workspacePath ? findAllReports(this.workspacePath) : [];
+  refresh(): void {
+    this.reports = findAllReports();
     this._onDidChangeTreeData.fire();
   }
 
