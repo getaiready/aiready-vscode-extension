@@ -46,140 +46,384 @@ const Post = () => (
       </p>
     </div>
 
-    <h2>The 9 Dimensions of AI-Readiness</h2>
+    <h2>The 9 Dimensions of AI-Readiness: Technical Deep Dive</h2>
 
-    <div className="space-y-8 my-8">
+    <div className="space-y-12 my-12">
+      {/* 1. Semantic Duplicates */}
       <section>
-        <h3 className="text-xl font-bold mb-2">1. Semantic Duplicates</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Logic that is repeated but written in
-          different ways.
-        </p>
-        <p>
-          <strong>Why it matters:</strong> Traditional linters miss logic
-          duplication. AI models get confused when the same logic exists in
+        <h3 className="text-2xl font-bold mb-4">1. Semantic Duplicates</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Logic that is repeated but written in
+          different ways. AI models get confused when the same logic exists in
           multiple places, often updating only one and leaving the others as
           &quot;logic debt.&quot;
         </p>
-        <CodeBlock lang="typescript">{`
-// File 1
-function validateUser(u) { return u.id && u.email.includes('@'); }
-
-// File 2
-const isValidUser = (user) => user.id && user.email.indexOf('@') !== -1;
-        `}</CodeBlock>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Technical Methodology
+            </h4>
+            <p className="text-sm">
+              Uses Jaccard similarity on AST (Abstract Syntax Tree) tokens to
+              identify structurally identical logic, ignoring variable name or
+              formatting changes.
+            </p>
+          </div>
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Scoring Thresholds
+            </h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <strong>90+:</strong> &lt; 1% duplication across domain logic.
+              </li>
+              <li>
+                <strong>&lt; 50:</strong> Core business logic repeated in
+                multiple places.
+              </li>
+            </ul>
+          </div>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Logic drift
+function validate(u) {
+  return u.id && u.email.includes('@');
+}
+const isValid = (user) => {
+  return user.id && user.email.indexOf('@') !== -1;
+}
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Unified validator
+export const isUserValid = (user: User) => {
+  return !!(user.id && user.email.includes('@'));
+};
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 2. Context Fragmentation */}
       <section>
-        <h3 className="text-xl font-bold mb-2">2. Context Fragmentation</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Analyzes how scattered related logic is
-          across the codebase.
+        <h3 className="text-2xl font-bold mb-4">2. Context Fragmentation</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Analyzes how scattered related logic is
+          across the codebase. AI has a limited context window. If a single
+          feature is spread across 15 folders, the AI cannot &quot;see&quot; the
+          whole picture at once.
         </p>
-        <p>
-          <strong>Why it matters:</strong> AI has a limited context window. If a
-          single feature is spread across 15 folders, the AI cannot
-          &quot;see&quot; the whole picture at once, leading to incomplete
-          refactors.
-        </p>
-        <CodeBlock lang="typescript">{`
-// src/api/users.ts
-import { getUserById } from '../services/user-service'; // +2,100 tokens
-import { validateUser } from '../utils/user-validation'; // +1,800 tokens
-// ...
-        `}</CodeBlock>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Technical Methodology
+            </h4>
+            <p className="text-sm">
+              Calculates the &quot;Token Distance&quot; between a file and its
+              dependencies by recursively traversing the import graph.
+            </p>
+          </div>
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Scoring Thresholds
+            </h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <strong>90+:</strong> Related logic is contained within 1-3
+                files.
+              </li>
+              <li>
+                <strong>&lt; 40:</strong> Requires 15+ files to understand a
+                single feature.
+              </li>
+            </ul>
+          </div>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Fragmented imports
+import { UserType } from '../../types/user';
+import { saveUser } from '../../api/user';
+import { validateUser } from '../../utils/validation';
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Cohesive feature module
+import { UserType, saveUser, validateUser } from '../features/user';
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 3. Naming Consistency */}
       <section>
-        <h3 className="text-xl font-bold mb-2">3. Naming Consistency</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Measures how consistently variables,
-          functions, and classes are named.
+        <h3 className="text-2xl font-bold mb-4">3. Naming Consistency</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Measures naming drift. AI predicts code
+          based on patterns. Inconsistent naming (e.g., mixing{' '}
+          <code>getUser</code> and <code>fetchAccount</code>) breaks these
+          patterns and reduces accuracy.
         </p>
-        <p>
-          <strong>Why it matters:</strong> AI predicts code based on patterns.
-          Inconsistent naming (e.g., mixing <code>getUser</code> and{' '}
-          <code>fetchAccount</code>) breaks these patterns and reduces
-          suggestion accuracy.
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Technical Methodology
+            </h4>
+            <p className="text-sm">
+              Uses token entropy and lexical pattern matching to detect naming
+              drift across similar domain entities.
+            </p>
+          </div>
+          <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+              Scoring Thresholds
+            </h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <strong>95+:</strong> Unified naming convention across the
+                entire project.
+              </li>
+              <li>
+                <strong>&lt; 60:</strong> Multiple competing conventions (e.g.
+                CamelCase vs snake_case).
+              </li>
+            </ul>
+          </div>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Inconsistent verbs
+function getUser() { ... }
+function fetchAccount() { ... }
+function retrieveProfile() { ... }
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Consistent patterns
+function getUser() { ... }
+function getAccount() { ... }
+function getProfile() { ... }
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 4. Dependency Health */}
       <section>
-        <h3 className="text-xl font-bold mb-2">4. Dependency Health</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Measures the stability, security, and
-          freshness of your dependencies.
-        </p>
-        <p>
-          <strong>Why it matters:</strong> AI models often suggest outdated or
+        <h3 className="text-2xl font-bold mb-4">4. Dependency Health</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> AI models often suggest outdated or
           insecure packages if your project is stuck on old versions. A clean
           dependency graph keeps AI suggestions modern and safe.
         </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Cross-references your dependency graph with CVE databases and
+            ecosystem staleness metrics to identify risk and maintenance debt.
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="json">{`
+// BAD: Deprecated dependencies
+"dependencies": {
+  "moment": "^2.24.0",
+  "lodash": "^3.0.0"
+}
+          `}</CodeBlock>
+          <CodeBlock lang="json">{`
+// GOOD: Modern alternatives
+"dependencies": {
+  "date-fns": "^4.0.0",
+  "zod": "^3.23.0"
+}
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 5. Change Amplification */}
       <section>
-        <h3 className="text-xl font-bold mb-2">5. Change Amplification</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Tracks how many places need to change
-          when a single requirement evolves.
+        <h3 className="text-2xl font-bold mb-4">5. Change Amplification</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Tracks ripple effects. AI struggles with
+          high coupling. If one change requires 10 files to be updated, the AI
+          is significantly more likely to miss a spot.
         </p>
-        <p>
-          <strong>Why it matters:</strong> AI struggles with high coupling. If
-          one change requires 10 files to be updated, the AI is significantly
-          more likely to miss a spot or introduce a regression.
-        </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Measures &quot;Coupling Density&quot; by analyzing co-change
+            frequency and shared constant usage across module boundaries.
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Hardcoded coupling
+// In 10 separate files
+const API = 'https://api.v1.old.com';
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Centralized config
+import { config } from '@/config';
+const API = config.api.baseUrl;
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 6. AI Signal Clarity */}
       <section>
-        <h3 className="text-xl font-bold mb-2">6. AI Signal Clarity</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Measures the ratio of &quot;signal&quot;
-          (actual logic) to &quot;noise&quot; (boilerplate, dead code).
+        <h3 className="text-2xl font-bold mb-4">6. AI Signal Clarity</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Excess boilerplate wastes the AI&apos;s
+          context window. More &quot;signal&quot; means the AI can spend its
+          tokens on the logic that actually matters.
         </p>
-        <p>
-          <strong>Why it matters:</strong> Excess boilerplate wastes the
-          AI&apos;s context window. More &quot;signal&quot; means the AI can
-          spend its tokens on the logic that actually matters.
-        </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Uses a signal-to-noise algorithm that weights domain-specific logic
+            against framework boilerplate and unused code segments.
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: High boilerplate
+class UserComponent extends React.Component {
+  constructor(props) { ... }
+  render() { ... }
+}
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: High signal
+const UserComponent = ({ user }) => (
+  <div>{user.name}</div>
+);
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 7. Documentation Health */}
       <section>
-        <h3 className="text-xl font-bold mb-2">7. Documentation Health</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Checks for missing, outdated, or
-          misleading documentation.
+        <h3 className="text-2xl font-bold mb-4">7. Documentation Health</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> AI relies on docstrings to understand
+          intent. Outdated docs lead to &quot;hallucinations&quot; where the AI
+          assumes behavior that no longer exists.
         </p>
-        <p>
-          <strong>Why it matters:</strong> AI relies heavily on docstrings to
-          understand intent. Outdated docs lead to &quot;hallucinations&quot;
-          where the AI assumes behavior that no longer exists.
-        </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Analyzes the semantic alignment between docstrings and
+            implementation using a &quot;Drift Detection&quot; algorithm.
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Misleading docs
+/** Returns user age */
+function getUserEmail(id) { ... }
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Precise context
+/** Fetches user email by ID */
+function getUserEmail(id: string) { ... }
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 8. Agent Grounding */}
       <section>
-        <h3 className="text-xl font-bold mb-2">8. Agent Grounding</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Assesses how easily an AI agent can
-          navigate your project structure.
-        </p>
-        <p>
-          <strong>Why it matters:</strong> Standard structures allow AI agents
-          to navigate autonomously. Confusing layouts make agents &quot;get
+        <h3 className="text-2xl font-bold mb-4">8. Agent Grounding</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> Standard structures allow AI agents to
+          navigate autonomously. Confusing layouts make agents &quot;get
           lost&quot; during multi-file operations.
         </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Evaluates project topology against &quot;Discovery Benchmarks&quot;
+            for common frameworks (React, Next.js, FastAPI, etc.).
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="text">{`
+// BAD: Deeply nested noise
+src/stuff/logic/user/
+  implementation_v2/
+    actual_code.ts
+          `}</CodeBlock>
+          <CodeBlock lang="text">{`
+// GOOD: Standardized paths
+src/features/user/
+  user.service.ts
+          `}</CodeBlock>
+        </div>
       </section>
 
+      {/* 9. Testability Index */}
       <section>
-        <h3 className="text-xl font-bold mb-2">9. Testability Index</h3>
-        <p className="mb-2">
-          <strong>What it is:</strong> Quantifies how easy it is for an AI to
-          write and run tests for your code.
+        <h3 className="text-2xl font-bold mb-4">9. Testability Index</h3>
+        <p className="mb-4">
+          <strong>The Problem:</strong> AI-generated tests verify AI-generated
+          code. Code that is hard to test is inherently harder for an AI to
+          maintain safely.
         </p>
-        <p>
-          <strong>Why it matters:</strong> AI-generated tests are the best way
-          to verify AI-generated code. Code that is hard to test is inherently
-          harder for an AI to maintain safely.
-        </p>
+        <div className="bg-slate-50 dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 mb-6">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            Technical Methodology
+          </h4>
+          <p className="text-sm">
+            Analyzes cyclomatic complexity, side-effect density, and external
+            dependency mocking requirements.
+          </p>
+        </div>
+        <h4 className="text-sm font-bold mb-2 uppercase tracking-widest text-slate-500">
+          Good vs. Bad Example
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CodeBlock lang="typescript">{`
+// BAD: Tightly coupled IO
+function saveUser(user) {
+  return db.query('INSERT...', user);
+}
+          `}</CodeBlock>
+          <CodeBlock lang="typescript">{`
+// GOOD: Injected dependency
+function saveUser(user, repo = db) {
+  return repo.save(user);
+}
+          `}</CodeBlock>
+        </div>
       </section>
     </div>
 

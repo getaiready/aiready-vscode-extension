@@ -13,6 +13,7 @@ import {
   ShieldIcon,
   TrendingUpIcon,
   TrashIcon,
+  ChartIcon,
 } from '@/components/Icons';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -1039,6 +1040,19 @@ function RepoCard({
             {uploading ? 'Uploading...' : 'Upload JSON'}
           </motion.button>
         </div>
+
+        {analysis && (
+          <Link href={`/dashboard/repo/${repo.id}`}>
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-500 text-white text-xs font-bold rounded-lg hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/20 border border-indigo-400/30"
+            >
+              <ChartIcon className="w-3.5 h-3.5" />
+              View Report Details
+            </motion.button>
+          </Link>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex gap-3">

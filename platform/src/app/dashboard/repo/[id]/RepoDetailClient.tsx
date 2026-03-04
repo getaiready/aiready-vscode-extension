@@ -35,13 +35,32 @@ interface Props {
 
 export default function RepoDetailClient({ repo, user }: Props) {
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [expandedIssues, setExpandedIssues] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'issues' | 'metrics'>('issues');
   const [filter, setFilter] = useState<{
     severity?: string;
-    tool?: string;
   }>({});
+
+  const toggleIssue = (index: number) => {
+    const newExpanded = new Set(expandedIssues);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedIssues(newExpanded);
+  };
+
+  const expandAll = () => {
+    setExpandedIssues(new Set(allIssues.map((_, i) => i)));
+  };
+
+  const collapseAll = () => {
+    setExpandedIssues(new Set());
+  };
 
   useEffect(() => {
     fetchLatestAnalysis();
@@ -85,7 +104,7 @@ export default function RepoDetailClient({ repo, user }: Props) {
 
   const filteredIssues = allIssues.filter((issue) => {
     if (filter.severity && issue.severity !== filter.severity) return false;
-    if (filter.tool && issue.tool !== filter.tool) return false;
+    if (selectedTool && issue.tool !== selectedTool) return false;
     return true;
   });
 
@@ -261,11 +280,27 @@ export default function RepoDetailClient({ repo, user }: Props) {
                   Dimensions
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
+                  <button
+                    onClick={() => setSelectedTool(null)}
+                    className={`w-full text-left glass-card p-3 rounded-xl border transition-all ${!selectedTool ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-white/5 hover:border-white/10'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+                        All Dimensions
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono">
+                        {allIssues.length} issues
+                      </span>
+                    </div>
+                  </button>
                   {Object.entries(analysis.breakdown).map(
                     ([key, val]: [string, any]) => (
-                      <div
+                      <button
                         key={key}
-                        className="glass-card p-4 rounded-2xl border border-white/5 space-y-2"
+                        onClick={() =>
+                          setSelectedTool(selectedTool === key ? null : key)
+                        }
+                        className={`w-full text-left glass-card p-4 rounded-2xl border transition-all space-y-2 ${selectedTool === key ? 'border-cyan-500/50 bg-cyan-500/5 ring-1 ring-cyan-500/20' : 'border-white/5 hover:border-white/10'}`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -284,7 +319,7 @@ export default function RepoDetailClient({ repo, user }: Props) {
                             className={`h-full ${val.score > 80 ? 'bg-emerald-500' : val.score > 60 ? 'bg-cyan-500' : val.score > 40 ? 'bg-amber-500' : 'bg-red-500'}`}
                           />
                         </div>
-                      </div>
+                      </button>
                     )
                   )}
                 </div>
@@ -296,15 +331,34 @@ export default function RepoDetailClient({ repo, user }: Props) {
                   <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
                     Identified Issues
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={
+                        expandedIssues.size === filteredIssues.length
+                          ? collapseAll
+                          : expandAll
+                      }
+                      className="text-[10px] font-bold text-slate-500 hover:text-cyan-400 uppercase tracking-widest transition-colors"
+                    >
+                      {expandedIssues.size === filteredIssues.length
+                        ? 'Collapse All'
+                        : 'Expand All'}
+                    </button>
                     <select
-                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-[11px] font-bold text-slate-400 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-[11px] font-bold text-slate-400 focus:outline-none focus:ring-1 focus:ring-cyan-500 appearance-none cursor-pointer pr-8"
                       onChange={(e) =>
                         setFilter((prev) => ({
                           ...prev,
                           severity: e.target.value || undefined,
                         }))
                       }
+                      style={{
+                        backgroundImage:
+                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.5rem center',
+                        backgroundSize: '1rem',
+                      }}
                     >
                       <option value="">All Severities</option>
                       <option value="critical">Critical</option>
@@ -324,87 +378,137 @@ export default function RepoDetailClient({ repo, user }: Props) {
                         All Clear!
                       </h4>
                       <p className="text-slate-500 text-sm">
-                        No critical issues found in the current analysis.
+                        No issues found for the current selection.
                       </p>
                     </div>
                   ) : (
-                    filteredIssues.map((issue, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="glass-card rounded-2xl border border-white/5 overflow-hidden group hover:border-white/10 transition-colors"
-                      >
-                        <div className="p-5 flex items-start gap-4">
-                          <div
-                            className={`mt-1 p-2 rounded-xl border ${severityColors[issue.severity] || severityColors.major}`}
-                          >
-                            <AlertCircleIcon className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                {issue.tool} / {issue.type || 'logic'}
-                              </span>
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${severityColors[issue.severity]}`}
-                              >
-                                {issue.severity}
-                              </span>
+                    filteredIssues.map((issue, i) => {
+                      const idx = allIssues.indexOf(issue);
+                      const isExpanded = expandedIssues.has(idx);
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.02 }}
+                          className={`glass-card rounded-2xl border transition-all overflow-hidden cursor-pointer ${isExpanded ? 'border-cyan-500/30 bg-cyan-500/5' : 'border-white/5 hover:border-white/10 group'}`}
+                          onClick={() => toggleIssue(idx)}
+                        >
+                          <div className="p-5 flex items-start gap-4">
+                            <div
+                              className={`mt-0.5 p-2 rounded-xl border transition-colors ${isExpanded ? severityColors[issue.severity] : 'text-slate-500 border-slate-800'}`}
+                            >
+                              <AlertCircleIcon className="w-5 h-5" />
                             </div>
-                            <h4 className="font-bold text-white text-lg leading-snug">
-                              {issue.message}
-                            </h4>
-
-                            {/* Location & Context */}
-                            <div className="flex flex-wrap gap-4 pt-1">
-                              {issue.file1 && (
-                                <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
-                                  <FileIcon className="w-3.5 h-3.5" />
-                                  {issue.file1}
-                                  {issue.location?.line && (
-                                    <span className="text-slate-600">
-                                      :L{issue.location.line}
-                                    </span>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    {issue.tool} / {issue.type || 'logic'}
+                                  </span>
+                                  {!isExpanded && (
+                                    <div className="flex gap-2">
+                                      {issue.file && (
+                                        <span className="text-[10px] text-slate-600 font-mono truncate max-w-[150px]">
+                                          {issue.file.split('/').pop()}
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                              {issue.file2 && (
-                                <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
-                                  <FileIcon className="w-3.5 h-3.5" />
-                                  {issue.file2}
-                                </div>
-                              )}
-                              {issue.file && !issue.file1 && (
-                                <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
-                                  <FileIcon className="w-3.5 h-3.5" />
-                                  {issue.file}
-                                  {issue.line && (
-                                    <span className="text-slate-600">
-                                      :L{issue.line}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Suggestion */}
-                            {issue.suggestion && (
-                              <div className="mt-4 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/10 space-y-2">
-                                <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
-                                  <BrainIcon className="w-4 h-4" />
-                                  Recommendation
-                                </div>
-                                <p className="text-sm text-slate-300 leading-relaxed italic">
-                                  "{issue.suggestion}"
-                                </p>
+                                <span
+                                  className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${severityColors[issue.severity]}`}
+                                >
+                                  {issue.severity}
+                                </span>
                               </div>
-                            )}
+                              <h4 className="font-bold text-white text-md leading-snug">
+                                {issue.message}
+                              </h4>
+
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <div className="pt-4 space-y-4">
+                                      {/* Location & Context */}
+                                      <div className="flex flex-wrap gap-4 pt-1">
+                                        {issue.file1 && (
+                                          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
+                                            <FileIcon className="w-3.5 h-3.5" />
+                                            {issue.file1}
+                                            {issue.location?.line && (
+                                              <span className="text-slate-600">
+                                                :L{issue.location.line}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                        {issue.file2 && (
+                                          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
+                                            <FileIcon className="w-3.5 h-3.5" />
+                                            {issue.file2}
+                                          </div>
+                                        )}
+                                        {issue.file && !issue.file1 && (
+                                          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded border border-cyan-400/10">
+                                            <FileIcon className="w-3.5 h-3.5" />
+                                            {issue.file}
+                                            {issue.line && (
+                                              <span className="text-slate-600">
+                                                :L{issue.line}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Suggestion */}
+                                      {issue.suggestion && (
+                                        <div className="p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/10 space-y-2">
+                                          <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
+                                            <BrainIcon className="w-4 h-4" />
+                                            Recommendation
+                                          </div>
+                                          <p className="text-sm text-slate-300 leading-relaxed italic">
+                                            "{issue.suggestion}"
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+
+                            <div className="mt-1">
+                              <motion.div
+                                animate={{ rotate: isExpanded ? 180 : 0 }}
+                                className="text-slate-600 group-hover:text-slate-400"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M19 9l-7 7-7-7"
+                                  />
+                                </svg>
+                              </motion.div>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))
+                        </motion.div>
+                      );
+                    })
                   )}
                 </div>
               </div>

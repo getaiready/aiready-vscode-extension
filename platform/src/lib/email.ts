@@ -180,7 +180,7 @@ export async function sendAnalysisCompleteEmail(params: {
     <!-- CTA Button -->
     <div style="padding: 0 24px 32px; text-align: center;">
       <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #06b6d4); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-        View Full Report
+        View Report Details
       </a>
     </div>
     
