@@ -319,14 +319,14 @@ sync: ## Push monorepo to origin and sync all spokes to their public repos. Use 
 		CHANGED_FILES="FORCE_ALL"; \
 		$(call log_info,Force sync enabled. All repositories will be synced.); \
 	else \
-		CHANGED_FILES=$$(git diff --name-only origin/$(TARGET_BRANCH) HEAD 2>/dev/null || echo "FORCE_ALL"); \
+		CHANGED_FILES="$$(git diff --name-only origin/$(TARGET_BRANCH) HEAD 2>/dev/null || echo "FORCE_ALL")"; \
 		if [ "$$CHANGED_FILES" = "FORCE_ALL" ]; then \
 			$(call log_warning,Could not detect changes reliably. Falling back to full sync.); \
 		elif [ -z "$$CHANGED_FILES" ]; then \
 			$(call log_info,No changes detected since last push to origin/$(TARGET_BRANCH).); \
 			echo "To force sync, use 'make sync FORCE=true'"; \
 		else \
-			$(call log_info,Detected changes in:); \
+			$(call log_info,Detected changes:); \
 			echo "$$CHANGED_FILES" | sed 's/^/  - /'; \
 		fi; \
 	fi; \
@@ -334,13 +334,18 @@ sync: ## Push monorepo to origin and sync all spokes to their public repos. Use 
 	$(call log_step,Pushing to monorepo...)
 	@git push origin $(TARGET_BRANCH)
 	@$(call log_success,Pushed to monorepo)
+	\
 	@$(call log_step,Syncing relevant repositories...)
 	@synced_count=0; \
 	for spoke in $(ALL_SPOKES); do \
 		if [ -f "$(REPO_ROOT)/packages/$$spoke/package.json" ]; then \
 			should_sync=false; \
-			if [ "$$CHANGED_FILES" = "FORCE_ALL" ]; then should_sync=true; \
-			elif echo "$$CHANGED_FILES" | grep -q "^packages/$$spoke/"; then should_sync=true; \
+			if [ "$$CHANGED_FILES" = "FORCE_ALL" ]; then \
+				should_sync=true; \
+			else \
+				case "$$CHANGED_FILES" in \
+					*"packages/$$spoke/"*) should_sync=true;; \
+				esac; \
 			fi; \
 			\
 			if [ "$$should_sync" = "true" ]; then \
@@ -352,8 +357,12 @@ sync: ## Push monorepo to origin and sync all spokes to their public repos. Use 
 	done; \
 	\
 	should_sync_landing=false; \
-	if [ "$$CHANGED_FILES" = "FORCE_ALL" ]; then should_sync_landing=true; \
-	elif echo "$$CHANGED_FILES" | grep -q "^landing/"; then should_sync_landing=true; \
+	if [ "$$CHANGED_FILES" = "FORCE_ALL" ]; then \
+		should_sync_landing=true; \
+	else \
+		case "$$CHANGED_FILES" in \
+			*"landing/"*) should_sync_landing=true;; \
+		esac; \
 	fi; \
 	if [ "$$should_sync_landing" = "true" ]; then \
 		$(call log_step,Syncing landing page repository...); \
@@ -361,7 +370,7 @@ sync: ## Push monorepo to origin and sync all spokes to their public repos. Use 
 		synced_count=$$((synced_count + 1)); \
 	fi; \
 	\
-	if [ $$synced_count -eq 0 ] && [ "$$CHANGED_FILES" != "FORCE_ALL" ] && [ -n "$$CHANGED_FILES" ]; then \
+	if [ $$synced_count -eq 0 ] && [ "$$CHANGED_FILES" != "FORCE_ALL" ] && [ -n "$$CHANGED_FILES" ] && [ "$$CHANGED_FILES" != "$$(printf '\n')" ]; then \
 		$(call log_info,Changes detected but no spoke or landing repo matches. Skipping spoke sync.); \
 	fi; \
 	$(call log_success,Sync process completed ($$synced_count repos synced))
