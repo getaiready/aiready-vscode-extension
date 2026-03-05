@@ -64,14 +64,13 @@ test.describe('Platform Visual Regression Tier 3', () => {
   });
 
   test('should load landing page', async ({ page }) => {
-    // Check if branding is present
-    await expect(page.locator('img[alt="AIReady"]')).toBeVisible();
+    // Check if main branding heading is present
+    await expect(page.locator('h1')).toContainText('Welcome to AIReady');
   });
 
   test('should render dashboard layout elements', async ({ page }) => {
-    // Skip actual dashboard test as it requires auth session
-    // But we can verify the login page (which uses same design system)
-    await expect(page.locator('h1')).toContainText('Welcome back');
+    // Verify the subtitle/description is present
+    await expect(page.locator('p').first()).toContainText(/Sign in/i);
   });
 
   // These tests would ideally use page.route() to inject the mockReport

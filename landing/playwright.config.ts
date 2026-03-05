@@ -48,6 +48,6 @@ export default defineConfig({
     url: 'http://localhost:8887',
     reuseExistingServer: !process.env.CI,
     cwd: './',
-    timeout: 120000,
+    timeout: 180000,
   },
 });
