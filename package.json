@@ -217,8 +217,8 @@
               "patterns",
               "context",
               "consistency",
-              "aiSignalClarity",
-              "grounding",
+              "ai-signal-clarity",
+              "agent-grounding",
               "testability",
               "doc-drift",
               "deps-health"
@@ -228,8 +228,8 @@
             "patterns",
             "context",
             "consistency",
-            "aiSignalClarity",
-            "grounding",
+            "ai-signal-clarity",
+            "agent-grounding",
             "testability",
             "doc-drift",
             "deps-health"
