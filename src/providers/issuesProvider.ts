@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
+import { Severity } from '@aiready/core';
 
 export interface Issue {
   message: string;
-  severity: 'critical' | 'major' | 'minor' | 'info';
+  severity: Severity | 'critical' | 'major' | 'minor' | 'info';
   tool?: string;
   location?: {
     file: string;
@@ -11,7 +12,13 @@ export interface Issue {
 }
 
 export type GroupBy = 'severity' | 'tool' | 'file' | 'none';
-export type SeverityFilter = 'all' | 'critical' | 'major' | 'minor' | 'info';
+export type SeverityFilter =
+  | 'all'
+  | Severity
+  | 'critical'
+  | 'major'
+  | 'minor'
+  | 'info';
 
 // Tree item for issues view
 export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
@@ -72,27 +79,17 @@ export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.Tre
 
   private getSeverityIcon(severity: string): string {
     switch (severity) {
+      case Severity.Critical:
       case 'critical':
         return 'error';
+      case Severity.Major:
       case 'major':
         return 'warning';
+      case Severity.Minor:
       case 'minor':
         return 'info';
       default:
         return 'circle-outline';
-    }
-  }
-
-  private getSeverityColor(severity: string): string {
-    switch (severity) {
-      case 'critical':
-        return '#f14c4c';
-      case 'major':
-        return '#cca700';
-      case 'minor':
-        return '#3794ff';
-      default:
-        return '#8a8a8a';
     }
   }
 
@@ -140,7 +137,11 @@ export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.Tre
         for (const [severity, issues] of Object.entries(groups)) {
           if (issues.length === 0) continue; // Skip empty groups
           const icon =
-            severity === 'critical' ? '🔴' : severity === 'major' ? '🟡' : '🔵';
+            severity === Severity.Critical || severity === 'critical'
+              ? '🔴'
+              : severity === Severity.Major || severity === 'major'
+                ? '🟡'
+                : '🔵';
           const groupItem = new vscode.TreeItem(
             `${icon} ${severity.toUpperCase()} (${issues.length})`,
             vscode.TreeItemCollapsibleState.Collapsed
@@ -231,7 +232,7 @@ export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.Tre
         vscode.TreeItemCollapsibleState.None
       );
       item.iconPath = new vscode.ThemeIcon(
-        this.getSeverityIcon(issue.severity)
+        this.getSeverityIcon(issue.severity as string)
       );
       item.description = locationStr;
       item.tooltip = `${issue.message}\n\n${locationStr}`;
@@ -262,20 +263,26 @@ export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.Tre
 
   private groupBySeverity(issues: Issue[]): Record<string, Issue[]> {
     const groups: Record<string, Issue[]> = {
-      critical: [],
-      major: [],
-      minor: [],
-      info: [],
+      [Severity.Critical]: [],
+      [Severity.Major]: [],
+      [Severity.Minor]: [],
+      [Severity.Info]: [],
     };
     issues.forEach((issue) => {
-      groups[issue.severity].push(issue);
+      const sev = (issue.severity as string).toLowerCase();
+      if (groups[sev]) {
+        groups[sev].push(issue);
+      } else if (sev === 'critical') groups[Severity.Critical].push(issue);
+      else if (sev === 'major') groups[Severity.Major].push(issue);
+      else if (sev === 'minor') groups[Severity.Minor].push(issue);
+      else if (sev === 'info') groups[Severity.Info].push(issue);
     });
     // Sort by severity order
     return {
-      critical: groups.critical,
-      major: groups.major,
-      minor: groups.minor,
-      info: groups.info,
+      [Severity.Critical]: groups[Severity.Critical],
+      [Severity.Major]: groups[Severity.Major],
+      [Severity.Minor]: groups[Severity.Minor],
+      [Severity.Info]: groups[Severity.Info],
     };
   }
 

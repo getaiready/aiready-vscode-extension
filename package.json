@@ -335,5 +335,8 @@
   "homepage": "https://getaiready.dev",
   "bugs": {
     "url": "https://github.com/caopengau/aiready-vscode-extension/issues"
+  },
+  "dependencies": {
+    "@aiready/core": "workspace:*"
   }
 }
