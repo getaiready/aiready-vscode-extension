@@ -208,14 +208,16 @@ export class GraphBuilder {
     };
 
     // 1. Semantic Duplicates
-    // Every tool now lives under its camelCase name in 'raw'
+    // Like contextAnalyzer, we prefer rawOutput.patternDetect.results which has file1/file2/similarity.
+    // breakdown.semanticDuplicates.details are normalized message strings — no pair data.
     const patternData = raw.patternDetect || raw.patterns || {};
     const dupDetails =
-      breakdown.semanticDuplicates?.details ||
-      (Array.isArray(patternData.results) ? patternData.results : []) ||
-      patternData.duplicates ||
-      raw.duplicates ||
-      [];
+      (Array.isArray(patternData.results) ? patternData.results : []).length > 0
+        ? patternData.results
+        : patternData.duplicates ||
+          breakdown.semanticDuplicates?.details ||
+          raw.duplicates ||
+          [];
     dupDetails.forEach((dup: any) => {
       // Support both raw DuplicatePattern and AnalysisResult with issues
       const f1 = dup.file1 || dup.fileName || dup.file || dup.location?.file;
