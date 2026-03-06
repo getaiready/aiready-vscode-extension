@@ -80,14 +80,17 @@ function RepoDetailContent({ repo, user, teams, overallScore }: Props) {
   if (analysis?.breakdown) {
     // Determine the likely project root to relativize paths
     // Look for everything after the repo name in the path
+    const repoName = repo.name.split('/').pop() || repo.name;
+    const pathPrefixRegex = new RegExp(`.*\\/${repoName}\\/`, 'g');
+
     const cleanPath = (p: string) => {
       if (!p) return p;
-      const repoName = repo.name.split('/').pop() || repo.name;
-      const index = p.indexOf(repoName);
-      if (index !== -1) {
-        return p.substring(index + repoName.length + 1);
-      }
-      return p;
+      return p.replace(pathPrefixRegex, '');
+    };
+
+    const cleanPathInText = (text: string) => {
+      if (!text) return text;
+      return text.replace(pathPrefixRegex, '');
     };
 
     Object.entries(analysis.breakdown).forEach(
@@ -128,6 +131,7 @@ function RepoDetailContent({ repo, user, teams, overallScore }: Props) {
 
           // Normalize message
           let msg = issue.message || issue.description || issue.title || '';
+          msg = cleanPathInText(msg);
 
           // Normalize recommendation/action
           let act =
@@ -136,6 +140,10 @@ function RepoDetailContent({ repo, user, teams, overallScore }: Props) {
             (Array.isArray(issue.recommendations)
               ? issue.recommendations[0]
               : issue.recommendation);
+
+          if (act && typeof act === 'string') {
+            act = cleanPathInText(act);
+          }
 
           if (!msg) {
             if (typeof issue === 'string') msg = issue;
