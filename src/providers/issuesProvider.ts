@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Severity } from '@aiready/core';
+import { Severity, FRIENDLY_TOOL_NAMES } from '@aiready/core';
 
 export interface Issue {
   message: string;
@@ -158,8 +158,9 @@ export class AIReadyIssuesProvider implements vscode.TreeDataProvider<vscode.Tre
         const groups = this.groupByTool(filteredIssues);
         for (const [tool, issues] of Object.entries(groups)) {
           if (issues.length === 0) continue;
+          const label = (FRIENDLY_TOOL_NAMES as any)[tool] || tool;
           const groupItem = new vscode.TreeItem(
-            `🔧 ${tool} (${issues.length})`,
+            `🔧 ${label} (${issues.length})`,
             vscode.TreeItemCollapsibleState.Collapsed
           );
           groupItem.iconPath = new vscode.ThemeIcon('symbol-property');
