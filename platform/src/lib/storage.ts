@@ -382,8 +382,25 @@ export function normalizeReport(
   const metadata = source.metadata || {};
   const repo = metadata.repository || source.repository || {};
 
+  // Standard platform keys
+  const platformKeys = [
+    'semanticDuplicates',
+    'contextFragmentation',
+    'namingConsistency',
+    'documentationHealth',
+    'dependencyHealth',
+    'aiSignalClarity',
+    'agentGrounding',
+    'testabilityIndex',
+    'changeAmplification',
+    'cognitiveLoad',
+    'patternEntropy',
+    'conceptCohesion',
+    'semanticDistance',
+  ];
+
   const toolMappings: Record<string, string> = {
-    // CLI Keys
+    // CLI Keys -> Platform Keys
     'pattern-detect': 'semanticDuplicates',
     patternDetect: 'semanticDuplicates',
     patterns: 'semanticDuplicates',
@@ -405,6 +422,7 @@ export function normalizeReport(
     'dependency-health': 'dependencyHealth',
     dependencyHealth: 'dependencyHealth',
     'deps-health': 'dependencyHealth',
+    depsHealth: 'dependencyHealth',
 
     'ai-signal-clarity': 'aiSignalClarity',
     aiSignalClarity: 'aiSignalClarity',
@@ -427,13 +445,93 @@ export function normalizeReport(
     conceptCohesion: 'conceptCohesion',
     'semantic-distance': 'semanticDistance',
     semanticDistance: 'semanticDistance',
+
+    // IssueType members mapping
+    'duplicate-pattern': 'semanticDuplicates',
+    'pattern-inconsistency': 'semanticDuplicates',
+    'context-fragmentation': 'contextFragmentation',
+    'dependency-health': 'dependencyHealth',
+    'circular-dependency': 'contextFragmentation',
+    'doc-drift': 'documentationHealth',
+    'naming-inconsistency': 'namingConsistency',
+    'naming-quality': 'namingConsistency',
+    'architecture-inconsistency': 'namingConsistency',
+    'dead-code': 'aiSignalClarity',
+    'missing-types': 'agentGrounding',
+    'magic-literal': 'aiSignalClarity',
+    'boolean-trap': 'aiSignalClarity',
+    'low-testability': 'testabilityIndex',
+    'agent-navigation-failure': 'agentGrounding',
+    'ambiguous-api': 'aiSignalClarity',
+    'change-amplification': 'changeAmplification',
+    changeAmplification: 'changeAmplification',
   };
 
   const breakdown: any = {};
 
-  // Aggressively try to find data for every platform key
+  // Initialize all platform keys with 0 score
+  platformKeys.forEach((key) => {
+    breakdown[key] = { score: 0, count: 0, details: [] };
+  });
+
+  // 1. First, populate scores from scoring.breakdown (Standardized source)
+  if (Array.isArray(scoring.breakdown)) {
+    scoring.breakdown.forEach((item: any) => {
+      const platformKey = toolMappings[item.toolName] || item.toolName;
+      if (breakdown[platformKey]) {
+        breakdown[platformKey].score = item.score || 0;
+      }
+    });
+  }
+
+  // 2. Also check top-level breakdown if it exists (CLI might put scores there)
+  if (
+    source.breakdown &&
+    typeof source.breakdown === 'object' &&
+    !Array.isArray(source.breakdown)
+  ) {
+    for (const [k, v] of Object.entries(source.breakdown)) {
+      const platformKey = toolMappings[k] || k;
+      if (breakdown[platformKey]) {
+        const score = typeof v === 'number' ? v : (v as any).score;
+        if (typeof score === 'number') {
+          breakdown[platformKey].score = score;
+        }
+      }
+    }
+  }
+
+  // 3. Populate details from results array (Standardized results format)
+  if (Array.isArray(source.results)) {
+    source.results.forEach((r: any) => {
+      if (r.issues && Array.isArray(r.issues)) {
+        r.issues.forEach((issue: any) => {
+          // Try to map issue type to platform key
+          const platformKey =
+            toolMappings[issue.type] ||
+            toolMappings[issue.category] ||
+            'unknown';
+          if (breakdown[platformKey]) {
+            const normalized = {
+              ...issue,
+              location: {
+                ...issue.location,
+                file: cleanPath(issue.location?.file || r.fileName, rootDir),
+              },
+            };
+            breakdown[platformKey].details.push(normalized);
+            breakdown[platformKey].count++;
+          }
+        });
+      }
+    });
+  }
+
+  // 4. Fallback for older formats or missing results (Top-level tool objects)
   for (const [cliName, platformKey] of Object.entries(toolMappings)) {
-    // Generate potential keys in the raw data
+    // Only proceed if we don't have many details yet
+    if (breakdown[platformKey]?.count > 0) continue;
+
     const camelCased = cliName
       .split('-')
       .map((word: string, index: number) =>
@@ -441,128 +539,53 @@ export function normalizeReport(
       )
       .join('');
 
-    // Check possible sources for this tool's data
-    const toolData =
-      source[camelCased] ||
-      source[cliName] ||
-      (source.breakdown && source.breakdown[cliName]) ||
-      (source.breakdown && source.breakdown[camelCased]) ||
-      (source.breakdown && source.breakdown[platformKey]);
-
-    // Check scoring for this tool's score if not in toolData
-    let toolScore = 0;
-    let rawMetrics = {};
-    if (Array.isArray(scoring.breakdown)) {
-      const scoringItem = scoring.breakdown.find(
-        (item: any) =>
-          item.toolName === cliName ||
-          item.toolName === camelCased ||
-          item.toolName === platformKey
-      );
-      if (scoringItem) {
-        toolScore = scoringItem.score || 0;
-        rawMetrics = scoringItem.rawMetrics || {};
-      }
-    }
-
-    // Try to get score from toolData itself if scoring didn't have it
-    if (toolScore === 0 && toolData) {
-      toolScore = toolData.score || toolData.summary?.score || 0;
-    }
-
-    let details: any[] = [];
+    const toolData = source[camelCased] || source[cliName];
     if (toolData) {
+      const score = toolData.score || toolData.summary?.score || 0;
+      if (breakdown[platformKey].score === 0) {
+        breakdown[platformKey].score = score;
+      }
+
       const resultsArray =
         toolData.results ||
         toolData.issues ||
         (Array.isArray(toolData) ? toolData : []);
+
       if (Array.isArray(resultsArray)) {
         resultsArray.forEach((r: any) => {
-          if (r.issues && Array.isArray(r.issues)) {
-            r.issues.forEach((issue: any) => {
-              const normalized =
-                typeof issue === 'string'
-                  ? { message: issue, severity: 'major' as const }
-                  : { ...issue };
+          const normalized =
+            typeof r === 'string'
+              ? { message: r, severity: 'major' as const }
+              : { ...r };
 
-              // Relativize path
-              if (normalized.location?.file) {
-                normalized.location.file = cleanPath(
-                  normalized.location.file,
-                  rootDir
-                );
-              }
-
-              if (!normalized.location?.file && r.fileName) {
-                normalized.location = {
-                  ...normalized.location,
-                  file: cleanPath(r.fileName, rootDir),
-                };
-              }
-              details.push(normalized);
-            });
-          } else {
-            const normalized =
-              typeof r === 'string'
-                ? { message: r, severity: 'major' as const }
-                : { ...r };
-
-            // Relativize path
-            if (normalized.location?.file) {
-              normalized.location.file = cleanPath(
-                normalized.location.file,
-                rootDir
-              );
-            } else if (normalized.file) {
-              normalized.location = {
-                ...normalized.location,
-                file: cleanPath(normalized.file, rootDir),
-              };
-            }
-
-            details.push(normalized);
+          if (normalized.location?.file) {
+            normalized.location.file = cleanPath(
+              normalized.location.file,
+              rootDir
+            );
+          } else if (normalized.file) {
+            normalized.location = {
+              ...normalized.location,
+              file: cleanPath(normalized.file, rootDir),
+            };
           }
+          breakdown[platformKey].details.push(normalized);
+          breakdown[platformKey].count++;
         });
       }
     }
+  }
 
-    // If we found data (even if 0 score and 0 issues), add it to the breakdown
+  // Final fallback: remove keys with no data to keep DB clean
+  Object.keys(breakdown).forEach((key) => {
     if (
-      toolData ||
-      toolScore > 0 ||
-      (Array.isArray(scoring.breakdown) &&
-        scoring.breakdown.some((item: any) => item.toolName === cliName))
+      breakdown[key].score === 0 &&
+      breakdown[key].count === 0 &&
+      breakdown[key].details.length === 0
     ) {
-      const existing = breakdown[platformKey];
-      if (existing) {
-        // Merge
-        existing.score = Math.max(existing.score, toolScore);
-        if (details.length > 0) {
-          existing.details = [...(existing.details || []), ...details];
-          existing.count = existing.details.length;
-        }
-      } else {
-        breakdown[platformKey] = {
-          score: toolScore,
-          count: details.length || (rawMetrics as any).totalIssues || 0,
-          details,
-        };
-      }
+      delete breakdown[key];
     }
-  }
-
-  // Final fallback for missing keys: if input had a flat breakdown, preserve those values
-  const inputBreakdown =
-    raw.breakdown && typeof raw.breakdown === 'object' ? raw.breakdown : {};
-  for (const [k, v] of Object.entries(inputBreakdown)) {
-    if (!breakdown[k]) {
-      if (typeof v === 'number') {
-        breakdown[k] = { score: v, count: 0, details: [] };
-      } else {
-        breakdown[k] = v;
-      }
-    }
-  }
+  });
 
   return {
     metadata: {
