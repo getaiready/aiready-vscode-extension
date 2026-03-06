@@ -361,13 +361,29 @@ export class GraphBuilder {
       });
     });
 
-    // 3. Generic Issues (naming, signal, etc.)
+    // 3. Generic Issues (naming, signal, doc-drift, etc.)
+    // Also extract reference edges: when an issue message mentions another file path,
+    // create a 'reference' edge from the source file to the mentioned file.
     Object.entries(breakdown).forEach(([key, tool]: [string, any]) => {
       if (key === 'semanticDuplicates' || key === 'contextFragmentation')
         return;
 
       (tool.details || []).forEach((item: any) => {
         processItemWithIssues(item);
+
+        // Create reference edges from file paths mentioned in issue messages
+        const srcFile = item.file || item.fileName || item.location?.file;
+        if (srcFile) {
+          const cleanSrc = builder.cleanPath(srcFile);
+          const msg = item.message || item.description || '';
+          const refs = builder['extractReferencedPaths'](msg);
+          refs.forEach((refPath: string) => {
+            if (refPath !== cleanSrc) {
+              builder.addNode(refPath, 'Referenced File', 4);
+              builder.addEdge(srcFile, refPath, 'reference');
+            }
+          });
+        }
       });
     });
 
