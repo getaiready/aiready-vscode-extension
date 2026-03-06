@@ -155,7 +155,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate timestamp for this analysis
-    const timestamp = data.metadata?.timestamp || new Date().toISOString();
+    let timestamp = data.metadata?.timestamp || new Date().toISOString();
+
+    // Safety check: Prevent future-dated records from causing UI issues
+    const reportDate = new Date(timestamp);
+    const now = new Date();
+    if (reportDate > now) {
+      console.warn(
+        `[API] Future-dated report detected: ${timestamp}. Capping to current time.`
+      );
+      timestamp = now.toISOString();
+    }
+
     const analysisId = randomUUID();
 
     // Store raw data in S3

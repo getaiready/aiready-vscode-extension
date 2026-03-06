@@ -327,7 +327,34 @@ export function extractBreakdown(data: AnalysisData) {
 /**
  * Normalize raw CLI report data into AnalysisData schema
  */
-export function normalizeReport(raw: any, force = false): AnalysisData {
+/**
+ * Cleans a file path by removing absolute prefixes and common temp patterns.
+ */
+function cleanPath(filePath: string, rootDir?: string): string {
+  if (!filePath) return filePath;
+
+  let cleaned = filePath;
+
+  // 1. If explicit rootDir provided, strip it first
+  if (rootDir && cleaned.startsWith(rootDir)) {
+    cleaned = cleaned.substring(rootDir.length);
+  }
+
+  // 2. Remove common absolute prefixes used in worker/local scans
+  // Patterns like /tmp/repo-uuid/
+  cleaned = cleaned.replace(/^\/tmp\/repo-[^/]+\//, '');
+
+  // 3. Remove leading slash if any
+  cleaned = cleaned.replace(/^\/+/, '');
+
+  return cleaned;
+}
+
+export function normalizeReport(
+  raw: any,
+  force = false,
+  rootDir?: string
+): AnalysisData {
   // If it's already in the target format AND has breakdown details, and we are not forcing, return as is.
   if (
     !force &&
@@ -457,11 +484,21 @@ export function normalizeReport(raw: any, force = false): AnalysisData {
                 typeof issue === 'string'
                   ? { message: issue, severity: 'major' as const }
                   : { ...issue };
-              if (!normalized.location?.file && r.fileName)
+
+              // Relativize path
+              if (normalized.location?.file) {
+                normalized.location.file = cleanPath(
+                  normalized.location.file,
+                  rootDir
+                );
+              }
+
+              if (!normalized.location?.file && r.fileName) {
                 normalized.location = {
                   ...normalized.location,
-                  file: r.fileName,
+                  file: cleanPath(r.fileName, rootDir),
                 };
+              }
               details.push(normalized);
             });
           } else {
@@ -469,11 +506,20 @@ export function normalizeReport(raw: any, force = false): AnalysisData {
               typeof r === 'string'
                 ? { message: r, severity: 'major' as const }
                 : { ...r };
-            if (!normalized.location?.file && normalized.file)
+
+            // Relativize path
+            if (normalized.location?.file) {
+              normalized.location.file = cleanPath(
+                normalized.location.file,
+                rootDir
+              );
+            } else if (normalized.file) {
               normalized.location = {
                 ...normalized.location,
-                file: normalized.file,
+                file: cleanPath(normalized.file, rootDir),
               };
+            }
+
             details.push(normalized);
           }
         });

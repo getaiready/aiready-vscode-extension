@@ -117,7 +117,7 @@ export async function handler(event: SQSEvent) {
 
       console.log(`[ScanWorker] Analysis complete. Normalizing results...`);
 
-      const data = normalizeReport(results);
+      const data = normalizeReport(results, false, tempDir);
       const timestamp = new Date().toISOString();
       const analysisId = randomUUID();
 
