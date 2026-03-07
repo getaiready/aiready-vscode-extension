@@ -140,6 +140,9 @@ export function extractImportsFromContent(
 ): string[] {
   const imports: string[] = [];
   const isPython = filePath?.toLowerCase().endsWith('.py');
+  const isJava = filePath?.toLowerCase().endsWith('.java');
+  const isCSharp = filePath?.toLowerCase().endsWith('.cs');
+  const isGo = filePath?.toLowerCase().endsWith('.go');
 
   if (isPython) {
     const pythonPatterns = [
@@ -157,6 +160,59 @@ export function extractImportsFromContent(
             .split(',')
             .map((p) => p.trim().split(/\s+as\s+/)[0]);
           imports.push(...parts);
+        }
+      }
+    }
+  } else if (isJava) {
+    const javaPatterns = [/^\s*import\s+(?:static\s+)?([a-zA-Z0-9_.]+)/gm];
+
+    for (const pattern of javaPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const importPath = match[1];
+        if (importPath) {
+          // Handle wildcard imports: import java.util.*; -> java.util
+          const cleanPath = importPath.endsWith('.*')
+            ? importPath.slice(0, -2)
+            : importPath;
+          imports.push(cleanPath);
+        }
+      }
+    }
+  } else if (isCSharp) {
+    const csharpPatterns = [
+      /^\s*using\s+(?:static\s+)?(?:[a-zA-Z0-9_.]+\s*=\s*)?([a-zA-Z0-9_.]+);/gm,
+    ];
+
+    for (const pattern of csharpPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const importPath = match[1];
+        if (importPath) {
+          imports.push(importPath);
+        }
+      }
+    }
+  } else if (isGo) {
+    const goPatterns = [
+      /^\s*import\s+"([^"]+)"/gm,
+      /^\s*import\s+\(\s*([^)]+)\)/gm,
+    ];
+
+    for (const pattern of goPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        if (pattern.source.includes('\\(')) {
+          // Block import
+          const block = match[1];
+          const lines = block.split('\n');
+          for (const line of lines) {
+            const lineMatch = /"([^"]+)"/.exec(line);
+            if (lineMatch) imports.push(lineMatch[1]);
+          }
+        } else {
+          // Single import
+          if (match[1]) imports.push(match[1]);
         }
       }
     }

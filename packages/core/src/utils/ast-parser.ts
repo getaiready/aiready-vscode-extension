@@ -34,7 +34,10 @@ export function parseFileExports(
 
   // Use professional multi-language parser if it's not TypeScript
   // (We keep the legacy TS/JS parser logic below for now as it has specific dependency extraction)
-  if (parser && parser.language === Language.Python) {
+  if (
+    parser &&
+    (parser.language === Language.Python || parser.language === Language.Java)
+  ) {
     try {
       const result = parser.parse(code, filePath);
       return {

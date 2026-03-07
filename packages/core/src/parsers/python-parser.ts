@@ -34,19 +34,23 @@ export class PythonParser implements LanguageParser {
       const possiblePaths = [
         path.join(
           process.cwd(),
-          'node_modules/tree-sitter-python/tree-sitter-python.wasm'
+          'node_modules/@unit-mesh/treesitter-artifacts/wasm/tree-sitter-python.wasm'
         ),
         path.join(
           __dirname,
-          '../../node_modules/tree-sitter-python/tree-sitter-python.wasm'
+          '../../node_modules/@unit-mesh/treesitter-artifacts/wasm/tree-sitter-python.wasm'
         ),
         path.join(
           __dirname,
-          '../../../node_modules/tree-sitter-python/tree-sitter-python.wasm'
+          '../../../node_modules/@unit-mesh/treesitter-artifacts/wasm/tree-sitter-python.wasm'
         ),
         path.join(
           __dirname,
-          '../../../../node_modules/tree-sitter-python/tree-sitter-python.wasm'
+          '../../../../node_modules/@unit-mesh/treesitter-artifacts/wasm/tree-sitter-python.wasm'
+        ),
+        path.join(
+          process.cwd(),
+          'node_modules/tree-sitter-wasms/out/tree-sitter-python.wasm'
         ),
         path.join(__dirname, '../assets/tree-sitter-python.wasm'),
       ];

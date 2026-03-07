@@ -18,6 +18,9 @@ export * from './business-metrics';
 export * from './parsers/parser-factory';
 export * from './parsers/typescript-parser';
 export * from './parsers/python-parser';
+export * from './parsers/java-parser';
+export * from './parsers/csharp-parser';
+export * from './parsers/go-parser';
 
 // Future-proof abstraction layer
 export * from './future-proof-metrics';

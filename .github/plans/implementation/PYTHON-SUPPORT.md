@@ -16,12 +16,13 @@ AIReady now supports **Python** in addition to TypeScript/JavaScript! This expan
 ### 2. Python Parser
 
 - **Location**: `@aiready/core/src/parsers/python-parser.ts`
-- **Implementation**: Regex-based (tree-sitter planned for Phase 2)
+- **Implementation**: Tree-sitter based AST parsing (WASM)
 - **Capabilities**:
   - Extract imports (`import` and `from...import` statements)
   - Extract exports (module-level functions and classes)
   - Detect PEP 8 naming conventions (snake_case, PascalCase, UPPER_CASE)
   - Extract function signatures and parameters
+  - Filtering of private functions and internal variables
 
 ### 3. Tool Integration
 
@@ -130,13 +131,17 @@ export enum Language {
 }
 
 export interface LanguageParser {
-  language: Language;
+  readonly language: Language;
+  readonly extensions: string[];
+  initialize(): Promise<void>;
   parse(code: string, filePath: string): ParseResult;
-  getNamingConventions(): NamingConvention[];
+  getNamingConventions(): NamingConvention;
 }
 
 // Usage
-const parser = getParser('script.py'); // Returns PythonParser
+const factory = ParserFactory.getInstance();
+await factory.initializeAll();
+const parser = factory.getParserForFile('script.py');
 const result = parser.parse(code, 'script.py');
 ```
 
@@ -184,21 +189,20 @@ All packages build successfully:
 ✅ @aiready/cli@0.7.21           Build success
 ```
 
-## Known Limitations (Phase 1)
+## Implementation Status
 
-1. **Parser Implementation**: Regex-based (tree-sitter planned for Phase 2)
-   - May miss complex nested structures
-   - Limited support for dynamic imports
-   - No type hint analysis (TypeScript-style annotations)
+1. **Parser Implementation**: AST-based using Tree-sitter
+   - Comprehensive support for Python 3.x syntax
+   - Robust nested structure extraction
+   - Handles aliased and wildcard imports
 
-2. **Pattern Detection**: Basic similarity matching
-   - No semantic analysis (AST-based comparison planned)
-   - Limited understanding of Python idioms
+2. **Pattern Detection**: Advanced similarity matching
+   - Indentation-based block extraction for Python
+   - Accurate function and class similarity comparison
 
-3. **Context Analysis**: Simple dependency tracking
-   - No virtual environment inspection
-   - No stdlib vs. third-party distinction
-   - Limited package resolution (only project files)
+3. **Context Analysis**: Improved dependency tracking
+   - Correct resolution of Python import patterns
+   - Accurate context budget and cohesion metrics
 
 ## Backward Compatibility
 

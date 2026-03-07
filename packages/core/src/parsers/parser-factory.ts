@@ -13,6 +13,9 @@ import {
 export { Language, LanguageParser, LANGUAGE_EXTENSIONS };
 import { TypeScriptParser } from './typescript-parser';
 import { PythonParser } from './python-parser';
+import { JavaParser } from './java-parser';
+import { CSharpParser } from './csharp-parser';
+import { GoParser } from './go-parser';
 
 /**
  * Factory for creating and managing language parsers
@@ -31,6 +34,9 @@ export class ParserFactory {
     // Register default parsers
     this.registerParser(new TypeScriptParser());
     this.registerParser(new PythonParser());
+    this.registerParser(new JavaParser());
+    this.registerParser(new CSharpParser());
+    this.registerParser(new GoParser());
   }
 
   /**

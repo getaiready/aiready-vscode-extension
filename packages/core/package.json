@@ -54,10 +54,13 @@
   "dependencies": {
     "@typescript-eslint/parser": "^8.53.0",
     "@typescript-eslint/typescript-estree": "^8.53.0",
+    "@unit-mesh/treesitter-artifacts": "^1.7.7",
     "chalk": "^5.4.1",
     "glob": "^13.0.0",
     "ignore": "^7.0.0",
+    "tree-sitter-java": "^0.23.5",
     "tree-sitter-python": "^0.25.0",
+    "tree-sitter-wasms": "^0.1.13",
     "typescript": "^5.9.3",
     "web-tree-sitter": "^0.26.6",
     "zod": "^4.3.6"
