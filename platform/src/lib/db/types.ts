@@ -128,6 +128,13 @@ export interface RemediationRequest {
   affectedFiles: string[];
   estimatedSavings: number;
   assignedTo?: string;
+  reviewFeedback?: {
+    userId: string;
+    comment: string;
+    decision: 'approve' | 'request-changes';
+    timestamp: string;
+  };
+  suggestedDiff?: string;
   createdAt: string;
   updatedAt: string;
 }

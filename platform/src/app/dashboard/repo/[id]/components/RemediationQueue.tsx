@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import * as Icons from '@/components/Icons';
-import type { RemediationRequest } from '@/lib/db/types';
+import { RemediationRequest } from '@/lib/db/types';
 import { toast } from 'sonner';
+import { ExpertReviewPanel } from './ExpertReviewPanel';
 
 // Fail-safe icon helper
 const Icon = ({ name, className }: { name: string; className?: string }) => {
@@ -22,6 +23,10 @@ interface RemediationQueueProps {
 export function RemediationQueue({ repoId, hasIssues }: RemediationQueueProps) {
   const [remediations, setRemediations] = useState<RemediationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewingRem, setReviewingRem] = useState<{
+    id: string;
+    diff?: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchRemediations();
@@ -218,6 +223,22 @@ export function RemediationQueue({ repoId, hasIssues }: RemediationQueueProps) {
                   </div>
 
                   <div className="ml-auto flex flex-col gap-2">
+                    {rem.status === 'reviewing' && (
+                      <button
+                        onClick={() =>
+                          setReviewingRem({
+                            id: rem.id,
+                            diff: rem.suggestedDiff,
+                          })
+                        }
+                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
+                      >
+                        <span className="text-[10px] font-black uppercase">
+                          Review Fix
+                        </span>
+                        <Icon name="EyeIcon" className="w-3 h-3" />
+                      </button>
+                    )}
                     {rem.status === 'pending' && rem.rank === 'P0' && (
                       <button
                         onClick={() => handleSwarm(rem.id)}
@@ -277,6 +298,17 @@ export function RemediationQueue({ repoId, hasIssues }: RemediationQueueProps) {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {reviewingRem && (
+          <ExpertReviewPanel
+            remediationId={reviewingRem.id}
+            suggestedDiff={reviewingRem.diff}
+            onClose={() => setReviewingRem(null)}
+            onDecision={() => fetchRemediations()}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
