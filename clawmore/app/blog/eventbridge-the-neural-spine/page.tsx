@@ -23,6 +23,8 @@ import BlogCard from '../../../components/BlogCard';
 import Modal from '../../../components/Modal';
 import LeadForm from '../../../components/LeadForm';
 import SystemFlow from '../../../components/SystemFlow';
+import Breadcrumbs from '../../../components/Breadcrumbs';
+import JsonLd from '../../../components/JsonLd';
 
 const FLOW_NODES = [
   {
@@ -74,11 +76,24 @@ export default function BlogPost() {
   const closeModal = () => setIsModalOpen(false);
   const apiUrl = process.env.NEXT_PUBLIC_LEAD_API_URL || '';
 
+  const POST_JSON_LD = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: 'EventBridge: The Neural Spine',
+    description:
+      'Mapping the ClawFlow mesh. How asynchronous events allow decoupled agents to coordinate without a central controller.',
+    datePublished: '2026-03-14',
+    author: {
+      '@type': 'Organization',
+      name: 'ClawMore',
+    },
+    image: 'https://clawmore.getaiready.dev/hero.png',
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-cyber-purple/30 selection:text-cyber-purple font-sans">
+      <JsonLd data={POST_JSON_LD} />
       <Navbar variant="post" />
-      <Navbar variant="post" />
-      {/* Navigation */}
 
       {/* Article Header */}
       <header className="py-24 border-b border-white/5 relative overflow-hidden">
@@ -117,6 +132,15 @@ export default function BlogPost() {
       <main className="py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
+            <Breadcrumbs
+              items={[
+                { label: 'BLOG', href: '/blog' },
+                {
+                  label: 'EVENTBRIDGE: THE NEURAL SPINE',
+                  href: '/blog/eventbridge-the-neural-spine',
+                },
+              ]}
+            />
             <article className="prose prose-invert prose-zinc max-w-none">
               <div className="space-y-12">
                 <section>

@@ -19,6 +19,9 @@ import {
 import Modal from '../../../components/Modal';
 import LeadForm from '../../../components/LeadForm';
 import SystemFlow from '../../../components/SystemFlow';
+import Navbar from '../../../components/Navbar';
+import Breadcrumbs from '../../../components/Breadcrumbs';
+import JsonLd from '../../../components/JsonLd';
 
 const BRIDGE_NODES = [
   {
@@ -74,11 +77,24 @@ export default function BlogPost() {
   const closeModal = () => setIsModalOpen(false);
   const apiUrl = process.env.NEXT_PUBLIC_LEAD_API_URL || '';
 
+  const POST_JSON_LD = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: 'The Bridge Pattern: HTTP to WebSocket',
+    description:
+      'Solving the "Persistent connection" problem in a serverless world. How we connect ephemeral Lambda triggers to long-running AI streams.',
+    datePublished: '2026-03-20',
+    author: {
+      '@type': 'Organization',
+      name: 'ClawMore',
+    },
+    image: 'https://clawmore.getaiready.dev/hero.png',
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-cyber-purple/30 selection:text-cyber-purple font-sans">
+      <JsonLd data={POST_JSON_LD} />
       <Navbar variant="post" />
-      <Navbar variant="post" />
-      {/* Navigation */}
 
       {/* Article Header */}
       <header className="py-24 border-b border-white/5 relative overflow-hidden">
@@ -118,6 +134,15 @@ export default function BlogPost() {
       <main className="py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
+            <Breadcrumbs
+              items={[
+                { label: 'BLOG', href: '/blog' },
+                {
+                  label: 'THE BRIDGE PATTERN',
+                  href: '/blog/bridge-pattern-ephemeral-persistent',
+                },
+              ]}
+            />
             <article className="prose prose-invert prose-zinc max-w-none">
               <div className="space-y-12">
                 <section>

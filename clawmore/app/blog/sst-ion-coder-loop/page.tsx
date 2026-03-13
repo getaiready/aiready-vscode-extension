@@ -20,6 +20,9 @@ import {
 import Modal from '../../../components/Modal';
 import LeadForm from '../../../components/LeadForm';
 import SystemFlow from '../../../components/SystemFlow';
+import Navbar from '../../../components/Navbar';
+import Breadcrumbs from '../../../components/Breadcrumbs';
+import JsonLd from '../../../components/JsonLd';
 
 const CODER_NODES = [
   {
@@ -74,9 +77,23 @@ export default function BlogPost() {
   const closeModal = () => setIsModalOpen(false);
   const apiUrl = process.env.NEXT_PUBLIC_LEAD_API_URL || '';
 
+  const POST_JSON_LD = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: 'SST Ion & The Coder Loop',
+    description:
+      'Closing the gap between LLM reasoning and Pulumi-based deployment. How we achieve sub-second infrastructure mutations.',
+    datePublished: '2026-03-24',
+    author: {
+      '@type': 'Organization',
+      name: 'ClawMore',
+    },
+    url: 'https://clawmore.getaiready.dev/blog/sst-ion-coder-loop',
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-cyber-purple/30 selection:text-cyber-purple font-sans">
-      <Navbar variant="post" />
+      <JsonLd data={POST_JSON_LD} />
       <Navbar variant="post" />
       {/* Navigation */}
 
@@ -117,6 +134,15 @@ export default function BlogPost() {
       <main className="py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
+            <Breadcrumbs
+              items={[
+                { label: 'BLOG', href: '/blog' },
+                {
+                  label: 'SST ION & THE CODER LOOP',
+                  href: '/blog/sst-ion-coder-loop',
+                },
+              ]}
+            />
             <article className="prose prose-invert prose-zinc max-w-none">
               <div className="space-y-12">
                 <section>

@@ -18,6 +18,9 @@ import {
 import Modal from '../../../components/Modal';
 import LeadForm from '../../../components/LeadForm';
 import SystemFlow from '../../../components/SystemFlow';
+import Navbar from '../../../components/Navbar';
+import Breadcrumbs from '../../../components/Breadcrumbs';
+import JsonLd from '../../../components/JsonLd';
 
 const COST_NODES = [
   {
@@ -78,9 +81,23 @@ export default function BlogPost() {
   const closeModal = () => setIsModalOpen(false);
   const apiUrl = process.env.NEXT_PUBLIC_LEAD_API_URL || '';
 
+  const BLOG_JSON_LD = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: 'The $1/Month AI Agent',
+    description:
+      'Breaking the 24/7 hosting trap. How to run a multi-channel AI backbone for the price of a single coffee.',
+    datePublished: '2026-03-12',
+    author: {
+      '@type': 'Person',
+      name: 'Minimalist Architect',
+    },
+    url: 'https://clawmore.getaiready.dev/blog/one-dollar-ai-agent',
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-cyber-purple/30 selection:text-cyber-purple font-sans">
-      <Navbar variant="post" />
+      <JsonLd data={BLOG_JSON_LD} />
       <Navbar variant="post" />
       {/* Navigation */}
 
@@ -121,6 +138,15 @@ export default function BlogPost() {
       <main className="py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
+            <Breadcrumbs
+              items={[
+                { label: 'BLOG', href: '/blog' },
+                {
+                  label: 'THE $1/MONTH AI AGENT',
+                  href: '/blog/one-dollar-ai-agent',
+                },
+              ]}
+            />
             <article className="prose prose-invert prose-zinc max-w-none">
               <div className="space-y-12">
                 <section>
