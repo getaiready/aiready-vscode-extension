@@ -1,4 +1,6 @@
-import { Severity } from '@aiready/core';
+import { Severity, FileContent } from '@aiready/core';
+
+export type { FileContent };
 
 export type PatternType =
   | 'api-handler'
@@ -36,11 +38,6 @@ export interface DuplicatePattern {
   reason?: string;
   suggestion?: string;
   matchedRule?: string;
-}
-
-export interface FileContent {
-  file: string;
-  content: string;
 }
 
 export interface DetectionOptions {
