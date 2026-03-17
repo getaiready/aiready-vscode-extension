@@ -13,6 +13,9 @@ export interface RuleFile {
 
 /**
  * Parse a rule markdown file into a Rule object
+ * @param filePath - Path to the markdown file
+ * @param sectionMap - Map of subsection names to their section IDs
+ * @returns Object containing the parsed Rule and its section ID
  */
 export async function parseRuleFile(
   filePath: string,

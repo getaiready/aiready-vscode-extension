@@ -616,7 +616,3 @@ publish-vscode: ## Publish VS Code extension to Marketplace (requires VSCE_PAT e
 	fi; \
 	$(call log_success,VS Code extension published)
 
-publish-vscode-via-ci: ## Trigger CI workflow to publish VS Code extension
-	@$(call log_step,Triggering VS Code extension publish workflow...)
-	@gh workflow run publish-vscode.yml
-	@$(call log_success,Workflow triggered. Check: https://github.com/caopengau/aiready/actions)

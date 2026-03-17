@@ -133,14 +133,13 @@ docker run --rm -v $(pwd):/workspace aiready/cli:latest \
       aiready/cli:latest scan /workspace --score
 ```
 
-### CI/CD Pipeline
+### Release Pipeline
 
-Docker images are automatically built and pushed on releases via `.github/workflows/docker.yml`:
+Docker images are managed via the `make` release pipeline in `makefiles/Makefile.distribution.mk`:
 
-- Triggers on GitHub releases
-- Builds for `linux/amd64` and `linux/arm64`
-- Pushes to both Docker Hub and ghcr.io
-- Includes version tags and `latest`
+- Run `make docker-build` to build locally.
+- Run `make docker-push` to push to both Docker Hub and ghcr.io.
+- This process includes version tags and `latest` for both slim and full images.
 
 ---
 
@@ -236,19 +235,21 @@ jobs:
 
 ### Building & Publishing
 
+VS Code extension releases are managed via the `make` release pipeline:
+
 ```bash
-# Package as VSIX
-make vscode-package
-
-# Publish to Marketplace
-make vscode-publish
-
-# Or manually
-cd vscode-extension
-pnpm install
-pnpm run package
-vsce publish
+# Release VS Code extension
+make release-vscode TYPE=patch
 ```
+
+This command automatically:
+
+1. Bumps the version in `vscode-extension/package.json`.
+2. Packages the extension as VSIX.
+3. Publishes to both VS Code Marketplace and Open VSX Registry.
+4. Syncs the changes to the standalone `aiready-vscode` repository and tags it.
+
+Alternatively, you can run individual steps:
 
 ### Configuration
 

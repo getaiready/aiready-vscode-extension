@@ -29,9 +29,9 @@
     "pattern-detect": {
       "minSimilarity": 0.6,
       "minLines": 5,
-      "batchSize": 50,
+      "batchSize": 100,
       "approx": true,
-      "minSharedTokens": 8,
+      "minSharedTokens": 7,
       "maxCandidatesPerBlock": 100
     },
     "context-analyzer": {
