@@ -89,14 +89,11 @@ describe('Cluster Detector', () => {
     const clusters = detectModuleClusters(graph);
 
     expect(clusters[0].domain).toBe('auth');
-    // fragmentation should be high because they are in different directories
-    expect(clusters[0].fragmentationScore).toBeGreaterThan(0.5);
-    expect(
-      clusters[0].suggestedStructure.consolidationPlan.length
-    ).toBeGreaterThan(0);
-    expect(clusters[0].suggestedStructure.consolidationPlan[0]).toContain(
-      'Consolidate'
-    );
+    // fragmentation is reduced because files share imports (coupling discount)
+    // and are classified as cohesive modules (single domain 'auth')
+    // Final score: ~0.24 (raw 1.0 * 0.8 coupling discount * 0.3 cohesive multiplier)
+    expect(clusters[0].fragmentationScore).toBeLessThan(0.5);
+    expect(clusters[0].suggestedStructure.consolidationPlan.length).toBe(0); // No consolidation needed when fragmentation is low
   });
 
   it('should suggest boundary improvements for large domains', () => {
