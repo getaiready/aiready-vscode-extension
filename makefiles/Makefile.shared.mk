@@ -123,11 +123,11 @@ INDENT_CLEAR       := \r\033[K
 # Logging macros
 # Usage: $(call log_info,Message)
 define log_info
-	$(if $(QUIET),,printf '$(INDENT_CLEAR)[INFO] %s$(RESET_COLOR)\n' "$(1)")
+	$(if $(QUIET),:,printf '$(INDENT_CLEAR)[INFO] %s$(RESET_COLOR)\n' "$(1)")
 endef
 
 define log_success
-	$(if $(QUIET),,printf '$(GREEN)$(INDENT_CLEAR)[SUCCESS] %s$(RESET_COLOR)\n' "$(1)")
+	$(if $(QUIET),:,printf '$(GREEN)$(INDENT_CLEAR)[SUCCESS] %s$(RESET_COLOR)\n' "$(1)")
 endef
 
 define log_warning
@@ -139,7 +139,7 @@ define log_error
 endef
 
 define log_step
-	$(if $(QUIET),,printf '$(LIGHTBLUE)$(INDENT_CLEAR)[STEP] %s$(RESET_COLOR)\n' "$(1)")
+	$(if $(QUIET),:,printf '$(LIGHTBLUE)$(INDENT_CLEAR)[STEP] %s$(RESET_COLOR)\n' "$(1)")
 endef
 
 define log_debug
