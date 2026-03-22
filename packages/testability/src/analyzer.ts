@@ -39,7 +39,7 @@ async function analyzeFileTestability(filePath: string): Promise<FileAnalysis> {
     externalStateMutations: 0,
   };
 
-  const parser = getParser(filePath);
+  const parser = await getParser(filePath);
   if (!parser) return result;
 
   let code: string;

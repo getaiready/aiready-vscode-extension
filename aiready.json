@@ -89,7 +89,7 @@
     }
   },
   "scoring": {
-    "threshold": 75,
+    "threshold": 80,
     "showBreakdown": true,
     "profile": "default"
   },

@@ -10,7 +10,7 @@ import {
 } from '../index';
 
 describe('buildDependencyGraph', () => {
-  it('should build a basic dependency graph', () => {
+  it('should build a basic dependency graph', async () => {
     const files = [
       {
         file: 'a.ts',
@@ -27,7 +27,7 @@ export const b = a + 1;
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
 
     expect(graph.nodes.size).toBe(2);
     expect(graph.edges.get('b.ts')?.has('a.ts')).toBe(true);
@@ -35,7 +35,7 @@ export const b = a + 1;
 });
 
 describe('calculateImportDepth', () => {
-  it('should calculate import depth correctly', () => {
+  it('should calculate import depth correctly', async () => {
     const files = [
       { file: 'a.ts', content: 'export const a = 1;' },
       {
@@ -48,14 +48,14 @@ describe('calculateImportDepth', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
 
     expect(calculateImportDepth('a.ts', graph)).toBe(0);
     expect(calculateImportDepth('b.ts', graph)).toBe(1);
     expect(calculateImportDepth('c.ts', graph)).toBe(2);
   });
 
-  it('should handle circular dependencies gracefully', () => {
+  it('should handle circular dependencies gracefully', async () => {
     const files = [
       {
         file: 'a.ts',
@@ -67,7 +67,7 @@ describe('calculateImportDepth', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
 
     // Should not infinite loop
     const depth = calculateImportDepth('a.ts', graph);
@@ -77,7 +77,7 @@ describe('calculateImportDepth', () => {
 });
 
 describe('getTransitiveDependencies', () => {
-  it('should get all transitive dependencies', () => {
+  it('should get all transitive dependencies', async () => {
     const files = [
       { file: 'a.ts', content: 'export const a = 1;' },
       {
@@ -90,7 +90,7 @@ describe('getTransitiveDependencies', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const deps = getTransitiveDependencies('c.ts', graph);
 
     expect(deps).toContain('b.ts');
@@ -100,7 +100,7 @@ describe('getTransitiveDependencies', () => {
 });
 
 describe('calculateContextBudget', () => {
-  it('should calculate total token cost including dependencies', () => {
+  it('should calculate total token cost including dependencies', async () => {
     const files = [
       { file: 'a.ts', content: 'export const a = 1;'.repeat(10) }, // ~40 tokens
       {
@@ -109,7 +109,7 @@ describe('calculateContextBudget', () => {
       }, // ~60 tokens
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const budget = calculateContextBudget('b.ts', graph);
 
     // Should include both files' tokens
@@ -118,7 +118,7 @@ describe('calculateContextBudget', () => {
 });
 
 describe('detectCircularDependencies', () => {
-  it('should detect circular dependencies', () => {
+  it('should detect circular dependencies', async () => {
     const files = [
       {
         file: 'a.ts',
@@ -130,13 +130,13 @@ describe('detectCircularDependencies', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const cycles = detectCircularDependencies(graph);
 
     expect(cycles.length).toBeGreaterThan(0);
   });
 
-  it('should return empty for no circular dependencies', () => {
+  it('should return empty for no circular dependencies', async () => {
     const files = [
       { file: 'a.ts', content: 'export const a = 1;' },
       {
@@ -145,7 +145,7 @@ describe('detectCircularDependencies', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const cycles = detectCircularDependencies(graph);
 
     expect(cycles.length).toBe(0);

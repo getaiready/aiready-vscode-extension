@@ -17,14 +17,16 @@ describe('analyzeChangeAmplification reproduction', () => {
   it('should not return 0 if there are some dependencies but not crazy', async () => {
     const files = ['src/a.ts', 'src/b.ts', 'src/c.ts'];
     (scanFiles as any).mockResolvedValue(files);
-    (getParser as any).mockReturnValue({
+    (getParser as any).mockResolvedValue({
+      initialize: vi.fn().mockResolvedValue(undefined),
       parse: (content: string) => {
         if (content.includes('import b'))
-          return { imports: [{ source: './b' }] };
+          return { imports: [{ source: './b' }], exports: [] };
         if (content.includes('import c'))
-          return { imports: [{ source: './c' }] };
-        return { imports: [] };
+          return { imports: [{ source: './c' }], exports: [] };
+        return { imports: [], exports: [] };
       },
+      language: 'typescript',
     });
 
     (fs.readFileSync as any).mockImplementation((file: string) => {
@@ -42,10 +44,13 @@ describe('analyzeChangeAmplification reproduction', () => {
     // Creating a highly coupled scenario
     const files = Array.from({ length: 20 }, (_, i) => `src/file${i}.ts`);
     (scanFiles as any).mockResolvedValue(files);
-    (getParser as any).mockReturnValue({
+    (getParser as any).mockResolvedValue({
+      initialize: vi.fn().mockResolvedValue(undefined),
       parse: () => ({
+        exports: [],
         imports: files.map((f) => ({ source: f })), // Everyone imports everyone
       }),
+      language: 'typescript',
     });
     (fs.readFileSync as any).mockReturnValue('import everything');
 

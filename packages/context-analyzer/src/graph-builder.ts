@@ -128,10 +128,10 @@ export function extractDomainKeywordsFromPaths(files: FileContent[]): string[] {
  * @param options - Optional configuration for domain detection.
  * @returns Complete dependency graph with nodes, edges, and semantic matrices.
  */
-export function buildDependencyGraph(
+export async function buildDependencyGraph(
   files: FileContent[],
   options?: { domainKeywords?: string[] }
-): DependencyGraph {
+): Promise<DependencyGraph> {
   const nodes = new Map<string, DependencyNode>();
   const edges = new Map<string, Set<string>>();
 
@@ -142,7 +142,7 @@ export function buildDependencyGraph(
 
   for (const { file, content } of files) {
     // 1. Get high-fidelity AST-based imports & exports
-    const { imports: astImports } = parseFileExports(content, file);
+    const { imports: astImports } = await parseFileExports(content, file);
 
     // 2. Resolve imports to absolute paths in the graph
     const resolvedImports = astImports
@@ -152,7 +152,7 @@ export function buildDependencyGraph(
     const importSources = astImports.map((i) => i.source);
 
     // 3. Wrap with platform-specific metadata (v0.11+)
-    const exports = extractExportsWithAST(
+    const exports = await extractExportsWithAST(
       content,
       file,
       { domainKeywords: autoDetectedKeywords },

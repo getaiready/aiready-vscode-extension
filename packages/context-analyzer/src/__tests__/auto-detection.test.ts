@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildDependencyGraph } from '../index';
 
 describe('Auto-detection from folder structure', () => {
-  it('should auto-detect domain keywords from folder paths', () => {
+  it('should auto-detect domain keywords from folder paths', async () => {
     const files = [
       {
         file: 'src/payments/process.ts',
@@ -14,7 +14,7 @@ describe('Auto-detection from folder structure', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const paymentsNode = graph.nodes.get('src/payments/process.ts');
     const ordersNode = graph.nodes.get('src/orders/create.ts');
 
@@ -25,7 +25,7 @@ describe('Auto-detection from folder structure', () => {
     expect(ordersNode?.exports[0].inferredDomain).toBe('order');
   });
 
-  it('should detect domains from nested folders', () => {
+  it('should detect domains from nested folders', async () => {
     const files = [
       {
         file: 'src/api/invoices/handler.ts',
@@ -33,14 +33,14 @@ describe('Auto-detection from folder structure', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const node = graph.nodes.get('src/api/invoices/handler.ts');
 
     // Should detect 'invoice' from path (invoices folder)
     expect(node?.exports[0].inferredDomain).toBe('invoice');
   });
 
-  it('should skip common infrastructure folders', () => {
+  it('should skip common infrastructure folders', async () => {
     const files = [
       {
         file: 'src/utils/helpers/format.ts',
@@ -48,14 +48,14 @@ describe('Auto-detection from folder structure', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const node = graph.nodes.get('src/utils/helpers/format.ts');
 
     // 'utils' and 'helpers' should be skipped, no domain detected
     expect(node?.exports[0].inferredDomain).toBe('unknown');
   });
 
-  it('should merge auto-detected with custom keywords', () => {
+  it('should merge auto-detected with custom keywords', async () => {
     const files = [
       {
         file: 'src/receipts/scan.ts',
@@ -63,7 +63,7 @@ describe('Auto-detection from folder structure', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files, {
+    const graph = await buildDependencyGraph(files, {
       domainKeywords: ['receipt'], // Custom keyword
     });
     const node = graph.nodes.get('src/receipts/scan.ts');
@@ -74,7 +74,7 @@ describe('Auto-detection from folder structure', () => {
 });
 
 describe('Import-path domain inference', () => {
-  it('should infer domain from import paths', () => {
+  it('should infer domain from import paths', async () => {
     const files = [
       {
         file: 'src/lib/session.ts',
@@ -89,14 +89,14 @@ describe('Import-path domain inference', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const sessionNode = graph.nodes.get('src/lib/session.ts');
 
     // session.ts imports from '../payments/...' so should infer 'payment' domain
     expect(sessionNode?.exports[0].inferredDomain).toBe('payment');
   });
 
-  it('should infer domain from absolute import paths', () => {
+  it('should infer domain from absolute import paths', async () => {
     const files = [
       {
         file: 'src/components/nav-links.ts',
@@ -111,14 +111,14 @@ describe('Import-path domain inference', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const navNode = graph.nodes.get('src/components/nav-links.ts');
 
     // nav-links.ts imports from '@/orders/...' so should infer 'order' domain
     expect(navNode?.exports[0].inferredDomain).toBe('order');
   });
 
-  it('should use identifier name first before import-path fallback', () => {
+  it('should use identifier name first before import-path fallback', async () => {
     const files = [
       {
         file: 'src/lib/handler.ts',
@@ -129,14 +129,14 @@ describe('Import-path domain inference', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const node = graph.nodes.get('src/lib/handler.ts');
 
     // processInvoice should match 'invoice' from identifier, not 'payment' from imports
     expect(node?.exports[0].inferredDomain).toBe('invoice');
   });
 
-  it('should fall back to import-path when identifier is generic', () => {
+  it('should fall back to import-path when identifier is generic', async () => {
     const files = [
       {
         file: 'src/lib/dynamodb.ts',
@@ -147,7 +147,7 @@ describe('Import-path domain inference', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const node = graph.nodes.get('src/lib/dynamodb.ts');
 
     // 'connect' is generic, should infer 'customer' from import path

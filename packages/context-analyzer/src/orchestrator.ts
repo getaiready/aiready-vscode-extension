@@ -69,7 +69,7 @@ export async function analyzeContext(
     }))
   );
 
-  const graph = buildDependencyGraph(
+  const graph = await buildDependencyGraph(
     fileContents.filter((f) => !f.file.toLowerCase().endsWith('.py'))
   );
 

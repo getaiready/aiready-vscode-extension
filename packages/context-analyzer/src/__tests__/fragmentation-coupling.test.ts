@@ -6,7 +6,7 @@ import {
 } from '../index';
 
 describe('fragmentation coupling discount', () => {
-  it('does not apply discount when files have no shared imports', () => {
+  it('does not apply discount when files have no shared imports', async () => {
     const files = [
       {
         file: 'src/billing/a.ts',
@@ -22,7 +22,7 @@ describe('fragmentation coupling discount', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const clusters = detectModuleClusters(graph);
     const cluster = clusters.find((c) => c.domain === 'billing');
     expect(cluster).toBeDefined();
@@ -38,7 +38,7 @@ describe('fragmentation coupling discount', () => {
     expect(cluster!.fragmentationScore).toBeCloseTo(expected, 6);
   });
 
-  it('applies up-to-20% discount when files share identical imports', () => {
+  it('applies up-to-20% discount when files share identical imports', async () => {
     const files = [
       {
         file: 'src/billing/a.ts',
@@ -54,7 +54,7 @@ describe('fragmentation coupling discount', () => {
       },
     ];
 
-    const graph = buildDependencyGraph(files);
+    const graph = await buildDependencyGraph(files);
     const clusters = detectModuleClusters(graph);
     const cluster = clusters.find((c) => c.domain === 'billing');
     expect(cluster).toBeDefined();

@@ -58,7 +58,7 @@ export async function analyzeNamingGeneralized(
   const issues: NamingIssue[] = [];
 
   for (const file of files) {
-    const parser = getParser(file);
+    const parser = await getParser(file);
     if (!parser) continue;
 
     try {

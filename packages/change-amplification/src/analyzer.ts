@@ -46,7 +46,7 @@ export async function analyzeChangeAmplification(
     }
 
     try {
-      const parser = getParser(file);
+      const parser = await getParser(file);
       if (!parser) continue;
 
       const content = fs.readFileSync(file, 'utf8');

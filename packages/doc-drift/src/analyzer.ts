@@ -48,7 +48,7 @@ export async function analyzeDocDrift(
       options.onProgress
     );
 
-    const parser = getParser(file);
+    const parser = await getParser(file);
     if (!parser) continue;
 
     let code: string;

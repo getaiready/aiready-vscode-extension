@@ -8,13 +8,13 @@ import chalk from 'chalk';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
 import {
-  loadConfig,
-  mergeConfigWithDefaults,
   resolveOutputPath,
   displayStandardConsoleReport,
+  createStandardProgressCallback,
 } from '@aiready/core';
 
 const program = new Command();
+const startTime = Date.now();
 
 program
   .name('aiready-testability')
@@ -60,21 +60,14 @@ EXAMPLES:
   .option('--output-file <path>', 'Output file path (for json)')
   .action(async (directory, options) => {
     console.log(chalk.blue('🧪 Analyzing testability...\n'));
-    const startTime = Date.now();
-
-    const config = await loadConfig(directory);
-    const mergedConfig = mergeConfigWithDefaults(config, {
-      minCoverageRatio: 0.3,
-    });
 
     const finalOptions: TestabilityOptions = {
       rootDir: directory,
-      minCoverageRatio:
-        parseFloat(options.minCoverage ?? '0.3') ||
-        mergedConfig.minCoverageRatio,
+      minCoverageRatio: parseFloat(options.minCoverage ?? '0.3'),
       testPatterns: options.testPatterns?.split(','),
       include: options.include?.split(','),
       exclude: options.exclude?.split(','),
+      onProgress: createStandardProgressCallback('testability'),
     };
 
     const report = await analyzeTestability(finalOptions);

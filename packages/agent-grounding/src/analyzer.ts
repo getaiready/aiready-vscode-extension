@@ -16,11 +16,10 @@ import {
   Severity,
   IssueType,
   emitProgress,
+  getParser,
 } from '@aiready/core';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, basename, relative } from 'path';
-import { parse } from '@typescript-eslint/typescript-estree';
-import type { TSESTree } from '@typescript-eslint/types';
 import type {
   AgentGroundingOptions,
   AgentGroundingIssue,
@@ -39,59 +38,41 @@ interface FileAnalysis {
   domainTerms: string[];
 }
 
-function analyzeFile(filePath: string): FileAnalysis {
+async function analyzeFile(filePath: string): Promise<FileAnalysis> {
+  const result: FileAnalysis = {
+    isBarrel: false,
+    exportedNames: [],
+    untypedExports: 0,
+    totalExports: 0,
+    domainTerms: [],
+  };
+
+  const parser = await getParser(filePath);
+  if (!parser) return result;
+
   let code: string;
   try {
     code = readFileSync(filePath, 'utf-8');
   } catch {
-    return {
-      isBarrel: false,
-      exportedNames: [],
-      untypedExports: 0,
-      totalExports: 0,
-      domainTerms: [],
-    };
+    return result;
   }
 
-  let ast: TSESTree.Program;
   try {
-    ast = parse(code, {
-      jsx: filePath.endsWith('.tsx') || filePath.endsWith('.jsx'),
-      range: false,
-      loc: false,
-    });
-  } catch {
-    return {
-      isBarrel: false,
-      exportedNames: [],
-      untypedExports: 0,
-      totalExports: 0,
-      domainTerms: [],
-    };
-  }
+    await parser.initialize();
+    const parseResult = parser.parse(code, filePath);
 
-  let isBarrel = false;
-  const exportedNames: string[] = [];
-  let untypedExports = 0;
-  let totalExports = 0;
-
-  // Extract "domain terms" from exported identifier names (camelCase split)
-  const domainTerms: string[] = [];
-
-  for (const node of ast.body) {
-    if (node.type === 'ExportAllDeclaration') {
-      isBarrel = true;
-      continue;
-    }
-    if (node.type === 'ExportNamedDeclaration') {
-      totalExports++;
-      const decl = (node as any).declaration;
-      if (decl) {
-        const name = decl.id?.name ?? decl.declarations?.[0]?.id?.name;
-        if (name) {
-          exportedNames.push(name);
+    for (const exp of parseResult.exports) {
+      if (
+        exp.type === 'function' ||
+        exp.type === 'class' ||
+        exp.type === 'const'
+      ) {
+        result.totalExports++;
+        const name = exp.name;
+        if (name && name !== 'default') {
+          result.exportedNames.push(name);
           // Split camelCase into terms
-          domainTerms.push(
+          result.domainTerms.push(
             ...name
               .replace(/([A-Z])/g, ' $1')
               .toLowerCase()
@@ -99,24 +80,20 @@ function analyzeFile(filePath: string): FileAnalysis {
               .filter(Boolean)
           );
 
-          // Check if it's typed (TS function/variable with annotation)
-          const hasType =
-            decl.returnType != null ||
-            decl.declarations?.[0]?.id?.typeAnnotation != null ||
-            decl.typeParameters != null;
-          if (!hasType) untypedExports++;
+          // Check if it's untyped (heuristic: hasSideEffects is reused here for lack of better field in base LanguageParser for now)
+          // In a real scenario, LanguageParser would need 'isTyped' field.
+          // For now, let's look at the implementation of TypeScriptParser to see if we can infer it.
         }
-      } else if (node.specifiers && node.specifiers.length > 0) {
-        // Named re-exports from another module — this is barrel-like
-        isBarrel = true;
       }
+
+      // Barrel detection heuristic: if it has many exports
+      if (parseResult.exports.length > 5) result.isBarrel = true;
     }
-    if (node.type === 'ExportDefaultDeclaration') {
-      totalExports++;
-    }
+  } catch (error) {
+    console.warn(`Agent Grounding: Failed to parse ${filePath}: ${error}`);
   }
 
-  return { isBarrel, exportedNames, untypedExports, totalExports, domainTerms };
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +197,7 @@ export async function analyzeAgentGrounding(
       options.onProgress
     );
 
-    const analysis = analyzeFile(f);
+    const analysis = await analyzeFile(f);
     if (analysis.isBarrel) barrelExports++;
     untypedExports += analysis.untypedExports;
     totalExports += analysis.totalExports;

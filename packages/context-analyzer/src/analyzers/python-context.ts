@@ -51,7 +51,7 @@ export async function analyzePythonContext(
   rootDir: string
 ): Promise<PythonContextMetrics[]> {
   const results: PythonContextMetrics[] = [];
-  const parser = getParser('dummy.py');
+  const parser = await getParser('dummy.py');
 
   if (!parser) {
     console.warn('Python parser not available');
@@ -135,7 +135,7 @@ async function buildPythonDependencyGraph(
   rootDir: string
 ): Promise<Map<string, Set<string>>> {
   const graph = new Map<string, Set<string>>();
-  const parser = getParser('dummy.py');
+  const parser = await getParser('dummy.py');
 
   if (!parser) return graph;
 

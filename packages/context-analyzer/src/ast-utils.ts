@@ -12,14 +12,14 @@ import { inferDomain, extractExports } from './semantic/domain-inference';
  * @returns Array of high-fidelity export metadata.
  * @lastUpdated 2026-03-18
  */
-export function extractExportsWithAST(
+export async function extractExportsWithAST(
   content: string,
   filePath: string,
   domainOptions?: { domainKeywords?: string[] },
   fileImports?: string[]
-): ExportInfo[] {
+): Promise<ExportInfo[]> {
   try {
-    const { exports: astExports } = parseFileExports(content, filePath);
+    const { exports: astExports } = await parseFileExports(content, filePath);
 
     if (astExports.length === 0 && !isTestFile(filePath)) {
       // If AST fails to find anything, we still use regex as a last resort

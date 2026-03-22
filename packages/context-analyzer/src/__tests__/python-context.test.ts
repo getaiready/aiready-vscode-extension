@@ -3,9 +3,10 @@ import * as pythonContext from '../analyzers/python-context';
 
 // Mock @aiready/core
 vi.mock('@aiready/core', () => ({
-  getParser: vi.fn((filename: string) => {
+  getParser: vi.fn(async (filename: string) => {
     if (filename.endsWith('.py')) {
       return {
+        initialize: vi.fn().mockResolvedValue(undefined),
         parse: vi.fn(() => ({
           imports: [
             { source: 'os', specifiers: ['path'], isRelative: false },
@@ -16,6 +17,7 @@ vi.mock('@aiready/core', () => ({
             { name: 'my_function', type: 'function' },
           ],
         })),
+        language: 'python',
       };
     }
     return null;
@@ -39,7 +41,7 @@ describe('python-context', () => {
   describe('analyzePythonContext', () => {
     it('should return empty array when parser is not available', async () => {
       const { getParser } = await import('@aiready/core');
-      vi.mocked(getParser).mockReturnValueOnce(null);
+      vi.mocked(getParser).mockResolvedValueOnce(null);
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
