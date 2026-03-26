@@ -373,4 +373,45 @@ function getUserEmail(id: string) { ... }`,
     },
     icon: <TargetIcon className="w-6 h-6 text-orange-400" />,
   },
+  {
+    id: 'contract-enforcement',
+    name: 'Contract Enforcement',
+    description:
+      'Detects defensive coding patterns that indicate missing structural contracts.',
+    why: 'When type contracts are weak, every consumer must add defensive fallbacks. AI models trained on contract-weak code learn to be overly cautious, generating verbose and defensive code.',
+    how: 'Uses AST analysis to detect as-any casts, deep optional chains, swallowed errors, and env var fallbacks — each representing a contract enforcement gap.',
+    thresholds: [
+      {
+        score: '90+',
+        label: 'Enforced',
+        detail: '< 2 defensive patterns per 1000 LOC. Strong type contracts.',
+      },
+      {
+        score: '60-80',
+        label: 'Leaky',
+        detail: 'Some boundary code uses escape hatches (as-any, deep ?.).',
+      },
+      {
+        score: '< 40',
+        label: 'Unenforced',
+        detail: 'Defensive patterns dominate. Contracts are weak or missing.',
+      },
+    ],
+    playbook: [
+      'Replace `as any` with proper type guards or discriminated unions.',
+      'Use Zod or io-ts to validate external data at boundaries.',
+      'Shorten optional chains by enforcing non-null contracts upstream.',
+      'Replace swallowed errors with typed error handling.',
+    ],
+    examples: {
+      bad: `// Defensive cascade — every consumer adds fallbacks
+const name = (data as any)?.user?.profile?.name ?? 'Unknown';
+try { await save(data) } catch (e) { console.log(e) }`,
+      good: `// Strong contract at boundary
+const UserSchema = z.object({ name: z.string() });
+const parsed = UserSchema.parse(data);
+await save(parsed); // TypeScript knows parsed.name is string`,
+    },
+    icon: <ShieldIcon className="w-6 h-6 text-violet-400" />,
+  },
 ];

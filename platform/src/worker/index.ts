@@ -30,6 +30,7 @@ import '../../../packages/testability';
 import '../../../packages/doc-drift';
 import '../../../packages/deps';
 import '../../../packages/agents';
+import '../../../packages/contract-enforcement';
 
 export async function handler(event: SQSEvent) {
   for (const record of event.Records) {
@@ -135,6 +136,7 @@ export async function handler(event: SQSEvent) {
             ToolName.TestabilityIndex,
             ToolName.DocDrift,
             ToolName.DependencyHealth,
+            ToolName.ContractEnforcement,
           ],
           exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
         },

@@ -229,6 +229,7 @@ export function calculateAiScore(
     [ToolName.PatternEntropy]: 6,
     [ToolName.ConceptCohesion]: 6,
     [ToolName.SemanticDistance]: 5,
+    [ToolName.ContractEnforcement]: 10,
   };
 
   let weightedSum = 0;

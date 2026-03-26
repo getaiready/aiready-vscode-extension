@@ -11,6 +11,8 @@ export const ALIAS_MAP: Record<string, string> = {
   testability: ToolName.TestabilityIndex,
   'deps-health': ToolName.DependencyHealth,
   'change-amp': ToolName.ChangeAmplification,
+  contract: ToolName.ContractEnforcement,
+  'contract-enforcement': ToolName.ContractEnforcement,
 };
 
 export const DEFAULT_SETTINGS: AIReadyConfig = {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: AIReadyConfig = {
       ToolName.TestabilityIndex,
       ToolName.DocDrift,
       ToolName.DependencyHealth,
+      ToolName.ContractEnforcement,
     ],
     exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
   },
@@ -59,6 +62,7 @@ export const DEFAULT_SETTINGS: AIReadyConfig = {
     [ToolName.TestabilityIndex]: { minCoverageRatio: 0.5 },
     [ToolName.DocDrift]: { staleMonths: 6 },
     [ToolName.DependencyHealth]: { trainingCutoffYear: 2024 },
+    [ToolName.ContractEnforcement]: { minChainDepth: 3 },
   },
   scoring: {},
 };
@@ -108,5 +112,11 @@ export const ALL_TOOLS = [
     id: ToolName.DependencyHealth,
     name: 'Dependency Health',
     description: 'Analyzes external dependency risks and bloat.',
+  },
+  {
+    id: ToolName.ContractEnforcement,
+    name: 'Contract Enforcement',
+    description:
+      'Detects defensive coding patterns that indicate missing structural contracts.',
   },
 ];

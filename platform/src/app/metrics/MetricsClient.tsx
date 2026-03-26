@@ -20,9 +20,9 @@ export default function MetricsClient({
   const techArticleSchema = {
     '@context': 'https://schema.org',
     '@type': 'TechArticle',
-    headline: 'AI Readiness Methodology: The 9 Core Metrics',
+    headline: 'AI Readiness Methodology: The 10 Core Metrics',
     description:
-      'Technical breakdown of how AIReady measures codebase AI-readiness across 9 key dimensions.',
+      'Technical breakdown of how AIReady measures codebase AI-readiness across 10 key dimensions.',
     author: {
       '@type': 'Organization',
       name: 'AIReady',
@@ -66,7 +66,7 @@ export default function MetricsClient({
               className="text-4xl md:text-6xl font-black text-white mb-6"
             >
               Deep Dive: The{' '}
-              <span className="gradient-text-animated">9 Metrics</span>
+              <span className="gradient-text-animated">10 Metrics</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}

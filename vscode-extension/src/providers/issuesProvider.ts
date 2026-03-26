@@ -22,6 +22,7 @@ export const FRIENDLY_TOOL_NAMES: Record<string, string> = {
   'pattern-entropy': 'Pattern Entropy',
   'concept-cohesion': 'Concept Cohesion',
   'semantic-distance': 'Semantic Distance',
+  'contract-enforcement': 'Contract Enforcement',
 };
 
 export interface Issue {

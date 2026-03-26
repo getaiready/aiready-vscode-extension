@@ -30,6 +30,7 @@ const DEFAULT_WEIGHTS: Record<string, number> = {
   [ToolName.PatternEntropy]: 6,
   [ToolName.ConceptCohesion]: 6,
   [ToolName.SemanticDistance]: 5,
+  [ToolName.ContractEnforcement]: 10,
 };
 
 export function RulesetSettings({ teamId }: { teamId: string }) {
