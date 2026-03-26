@@ -12,6 +12,7 @@ export const SMART_DEFAULTS = {
     'testability',
     'doc-drift',
     'deps-health',
+    'contract-enforcement',
   ] as const,
   failOn: 'critical' as const,
   autoScan: false,

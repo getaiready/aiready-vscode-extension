@@ -99,6 +99,16 @@ export interface AIReadyResult {
     }>;
   };
   duplicates?: any[];
+  'contract-enforcement'?: {
+    issues: Array<{
+      severity: 'critical' | 'major' | 'minor' | 'info';
+      message: string;
+      location?: {
+        file: string;
+        line?: number;
+      };
+    }>;
+  };
 }
 
 /**
@@ -199,6 +209,18 @@ export function countIssues(result: AIReadyResult): {
     });
   }
 
+  // Contract Enforcement
+  const contractEnforcement =
+    (result as any)['contract-enforcement'] ||
+    (result as any)['contractEnforcement'];
+  if (contractEnforcement && Array.isArray(contractEnforcement.issues)) {
+    contractEnforcement.issues.forEach((issue: any) => {
+      const sev = issue.severity as keyof typeof counts;
+      counts[sev] = (counts[sev] || 0) + 1;
+      counts.total++;
+    });
+  }
+
   return counts;
 }
 
@@ -267,6 +289,16 @@ export function collectAllIssues(result: AIReadyResult): Issue[] {
           issues.push({ ...issue, tool: 'ai-signal-clarity' });
         });
       }
+    });
+  }
+
+  // Contract Enforcement
+  const contractEnforcement =
+    (result as any)['contract-enforcement'] ||
+    (result as any)['contractEnforcement'];
+  if (contractEnforcement && Array.isArray(contractEnforcement.issues)) {
+    contractEnforcement.issues.forEach((issue: any) => {
+      issues.push({ ...issue, tool: 'contract-enforcement' });
     });
   }
 

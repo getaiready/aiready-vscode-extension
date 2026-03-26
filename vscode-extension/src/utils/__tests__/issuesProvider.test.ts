@@ -109,6 +109,7 @@ describe('FRIENDLY_TOOL_NAMES', () => {
       'testability-index',
       'doc-drift',
       'dependency-health',
+      'contract-enforcement',
     ];
     for (const tool of coreTools) {
       expect(

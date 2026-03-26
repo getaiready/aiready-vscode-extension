@@ -108,7 +108,7 @@ export class MetricsViewProvider {
 </head>
 <body>
   <h1>AI Readiness Methodology</h1>
-  <p class="subtitle">Deep dive into the 9 metrics that define AI-friendly code.</p>
+  <p class="subtitle">Deep dive into the 10 metrics that define AI-friendly code.</p>
 
   <div id="semantic-duplicates" class="metric-card">
     <div class="metric-header">
@@ -316,5 +316,12 @@ const metrics = [
     description:
       'Quantifies how easy it is for an AI to write and run tests for your code.',
     how: 'Analyzes cyclomatic complexity, side-effect density, and external dependency mocking requirements.',
+  },
+  {
+    id: 'contract-enforcement',
+    name: 'Contract Enforcement',
+    description:
+      'Detects defensive coding patterns that indicate missing structural contracts.',
+    how: 'Uses AST analysis to detect as-any casts, deep optional chains, swallowed errors, and env var fallbacks — each representing a contract enforcement gap.',
   },
 ];

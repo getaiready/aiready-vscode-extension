@@ -10,7 +10,7 @@
 - 🛡️ **Real-time Analysis** - See your AI readiness score in the status bar
 - 📊 **Issue Explorer** - Browse detected issues in the sidebar
 - ⚡ **Quick Scan** - Analyze current file with a single command
-- 🔬 **9-Metric Methodology** - Deep dive into 9 dimensions of AI-readiness
+- 🔬 **10-Metric Methodology** - Deep dive into 10 dimensions of AI-readiness
 - 🔧 **Configurable** - Set thresholds, severity levels, and more
 - 🤖 **MCP Server** - Expose AIReady capabilities to MCP-compliant AI agents (Cursor, Windsurf, Claude)
 
@@ -55,7 +55,7 @@ code --install-extension aiready-vsix
 | `AIReady: Quick Scan (Current File)` | Analyze only the active file       |
 | `AIReady: Show Report`               | Open the output panel with details |
 | `AIReady: Open Settings`             | Configure AIReady options          |
-| `AIReady: Show Methodology`          | Deep dive into the 9 metrics       |
+| `AIReady: Show Methodology`          | Deep dive into the 10 metrics      |
 
 ### Configuration
 
@@ -75,9 +75,9 @@ The extension shows your AI readiness score in the status bar:
 - ⚠️ **50-69** - Needs improvement
 - ❌ **<50** - Critical issues detected
 
-## The 9 Dimensions of AI-Readiness
+## The 10 Dimensions of AI-Readiness
 
-AIReady measures your codebase against 9 critical metrics that determine how well AI agents can understand and maintain your code:
+AIReady measures your codebase against 10 critical metrics that determine how well AI agents can understand and maintain your code:
 
 1. **Semantic Duplicates** - Logic repeated in different ways that confuses AI context.
 2. **Context Fragmentation** - How scattered related logic is across the codebase.
@@ -88,6 +88,7 @@ AIReady measures your codebase against 9 critical metrics that determine how wel
 7. **Documentation Health** - Accuracy and freshness of docstrings and READMEs.
 8. **Agent Grounding** - Ease of navigation for autonomous AI agents.
 9. **Testability Index** - Ability for AI to write and run reliable tests for your code.
+10. **Contract Enforcement** - Structural type contracts that prevent defensive coding cascades.
 
 ## Methodology & Deep Dives
 
@@ -107,7 +108,7 @@ Click on any tool score in the sidebar's **Summary** view to open the **AIReady 
 
 ### 0.3.32
 
-- **New 9-Metric Methodology**: Integrated full deep-dive support for all 9 AI-readiness metrics.
+- **New 10-Metric Methodology**: Integrated full deep-dive support for all 10 AI-readiness metrics.
 - **Methodology Webview**: Added a detailed view explaining detection logic, thresholds, and examples.
 - **Interactive Summary**: Click tool scores to see how they are calculated and how to fix them.
 - **Refined UI**: Improved issue grouping and visualization.
