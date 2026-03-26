@@ -215,7 +215,7 @@ export default $config({
       domain: {
         name: domainName,
         dns: sst.cloudflare.dns({
-          zone: '50eb7dcadc84c58ab34583742db0b671',
+          zone: '1714b0c27187ccfe2b1ddf3c1ec261a6',
         }),
       },
       environment: {
