@@ -3,9 +3,9 @@
 > Explains why AI tools struggle with your codebase—and where small changes unlock outsized leverage
 
 [![AI-Ready](https://img.shields.io/badge/AI--Ready-optimized-brightgreen)](https://getaiready.dev)
-🌐 **[Visit our website](https://getaiready.dev)** | 📦 [npm](https://www.npmjs.com/package/@aiready/cli) | ⭐ [GitHub](https://github.com/caopengau/aiready) | ![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)
+🌐 **[Visit our website](https://getaiready.dev)** | 📦 [npm](https://www.npmjs.com/package/@aiready/cli) | ⭐ [GitHub](https://github.com/caopengau/aiready) | 💬 [Discord](https://discord.gg/aiready) | ![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)
 
-📖 **Quick Links:** [🚀 Quick Start (5 min)](#-quick-start) | [🔐 Security](./SECURITY.md) | [🤔 Not Another Linter?](./NOT-ANOTHER-LINTER.md) | [🏢 Enterprise](./ENTERPRISE-READINESS-PLAN.md)
+📖 **Quick Links:** [🚀 Quick Start (5 min)](#-quick-start) | [🔐 Security](./SECURITY.md) | [🤔 Not Another Linter?](./NOT-ANOTHER-LINTER.md) | [🏢 Enterprise](./ENTERPRISE-READINESS-PLAN.md) | [🤝 Contributing](./CONTRIBUTING.md)
 
 ## 🎯 Mission
 
@@ -399,6 +399,26 @@ On the roadmap:
 - 🔜 **CI/CD Integration** - GitHub Actions, GitLab CI
 
 See [Platform Documentation](./.github/platform/README.md) for details.
+
+## 🤝 Community
+
+Join our community of developers building AI-ready codebases:
+
+- 💬 **[Discord](https://discord.gg/aiready)** - Ask questions, share wins, get help
+- 🐛 **[GitHub Issues](https://github.com/caopengau/aiready/issues)** - Report bugs, request features
+- 💡 **[GitHub Discussions](https://github.com/caopengau/aiready/discussions)** - Share ideas, ask questions
+- 📝 **[Contributing](./CONTRIBUTING.md)** - Learn how to contribute to AIReady
+- 📋 **[Community Guidelines](./.github/COMMUNITY-GUIDELINES.md)** - Our community standards
+
+### Events
+
+- **Weekly Office Hours:** Every Tuesday, 10am PST / 1pm EST / 6pm GMT
+- **Monthly AI Readiness Challenge:** First Monday of each month
+- **Quarterly Hack Week:** Build integrations, plugins, visualizations
+
+### Contributors
+
+Thank you to all our contributors! See [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
 
 ## 📚 Documentation
 

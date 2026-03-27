@@ -2,8 +2,16 @@
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/aiready.aiready?label=VS%20Code%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=aiready.aiready)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Discord](https://img.shields.io/discord/123456789?label=Discord&color=7289da)](https://discord.gg/aiready)
 
 **Real-time AI readiness analysis in VS Code.** Detect issues that confuse AI models before they become problems.
+
+## Why AIReady?
+
+- **AI coding assistants giving bad suggestions?** AIReady finds why
+- **Context window costs too high?** AIReady shows where to optimize
+- **Code reviews catching AI-generated duplicates?** AIReady prevents them
+- **Want to make your codebase AI-native?** AIReady shows you how
 
 ## Features
 
@@ -120,6 +128,13 @@ Click on any tool score in the sidebar's **Summary** view to open the **AIReady 
 - [GitHub (Extension)](https://github.com/caopengau/aiready-vscode-extension)
 - [Issues](https://github.com/caopengau/aiready-vscode-extension/issues)
 - [npm @aiready/cli](https://www.npmjs.com/package/@aiready/cli)
+
+## Community
+
+- 💬 [Discord](https://discord.gg/aiready) - Join our community
+- 🐛 [GitHub Issues](https://github.com/caopengau/aiready/issues) - Report bugs
+- 💡 [GitHub Discussions](https://github.com/caopengau/aiready/discussions) - Share ideas
+- 📝 [Contributing](https://github.com/caopengau/aiready/blob/main/CONTRIBUTING.md) - Learn how to contribute
 
 ---
 

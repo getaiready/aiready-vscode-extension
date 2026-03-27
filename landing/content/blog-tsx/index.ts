@@ -137,6 +137,10 @@ import ArchitectingForAgents from './architecting-for-agents';
 import architectingForAgentsMeta from './architecting-for-agents.meta';
 import TheReadinessScorecard from './the-readiness-scorecard';
 import readinessScorecardMeta from './readiness-scorecard.meta';
+import GettingStartedWithAireadyCli from './getting-started-with-aiready-cli';
+import gettingStartedWithAireadyCliMeta from './getting-started-with-aiready-cli.meta';
+import WhyAiCodingAssistantsGetWorse from './why-ai-coding-assistants-get-worse';
+import whyAiCodingAssistantsGetWorseMeta from './why-ai-coding-assistants-get-worse.meta';
 
 /**
  * Static posts array for static generation.
@@ -209,4 +213,12 @@ export const posts = [
   createPostEntry(livingDocumentationMeta, LivingDocumentation),
   createPostEntry(architectingForAgentsMeta, ArchitectingForAgents),
   createPostEntry(readinessScorecardMeta, TheReadinessScorecard),
+  createPostEntry(
+    gettingStartedWithAireadyCliMeta,
+    GettingStartedWithAireadyCli
+  ),
+  createPostEntry(
+    whyAiCodingAssistantsGetWorseMeta,
+    WhyAiCodingAssistantsGetWorse
+  ),
 ];
