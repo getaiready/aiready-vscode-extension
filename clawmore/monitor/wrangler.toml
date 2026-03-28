@@ -7,6 +7,6 @@ crons = ["*/5 * * * *"]
 
 [vars]
 PROJECT_NAME = "ClawMore"
-# URLs should be set via `wrangler secret put` or dashboard for production
-# URL_TO_CHECK = ""
-# HEALTH_API_URL = ""
+URL_TO_CHECK = "https://clawmore.ai"
+SNS_TOPIC_ARN = "arn:aws:sns:ap-southeast-2:316759592139:aiready-health-alerts"
+AWS_REGION = "ap-southeast-2"

@@ -22,7 +22,7 @@ export const TestabilityProvider = createProvider({
   getResults(report): AnalysisResult[] {
     return report.issues.map((issue) => ({
       fileName: issue.location.file,
-      issues: [issue] as any[],
+      issues: [issue],
       metrics: {
         testabilityScore: report.summary.score,
       },
@@ -37,9 +37,9 @@ export const TestabilityProvider = createProvider({
   score(output) {
     const report = {
       summary: output.summary,
-      rawData: (output.metadata as any).rawData,
-      recommendations: (output.summary as any).recommendations || [],
-    } as unknown as TestabilityReport;
+      rawData: output.metadata?.rawData ?? {},
+      recommendations: output.summary?.recommendations || [],
+    } as TestabilityReport;
     return calculateTestabilityScore(report);
   },
 });

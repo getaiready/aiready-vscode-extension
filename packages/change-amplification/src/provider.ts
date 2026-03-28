@@ -19,7 +19,7 @@ export const ChangeAmplificationProvider = createProvider({
     return analyzeChangeAmplification(options as ChangeAmplificationOptions);
   },
   getResults(report) {
-    return report.results as any;
+    return report.results;
   },
   getSummary(report) {
     return report.summary;
@@ -27,7 +27,7 @@ export const ChangeAmplificationProvider = createProvider({
   score(output) {
     return buildSimpleProviderScore(
       ToolName.ChangeAmplification,
-      output.summary as any
+      output.summary
     );
   },
 });

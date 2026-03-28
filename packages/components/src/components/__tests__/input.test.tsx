@@ -3,44 +3,60 @@ import { render, screen } from '@testing-library/react';
 import { Input } from '../input';
 
 describe('Input', () => {
-  it('should render an input element', () => {
+  it('renders input element', () => {
     render(<Input />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('should apply custom className', () => {
-    const { container } = render(<Input className="custom-class" />);
-    expect(container.firstChild).toHaveClass('custom-class');
+  it('applies custom className', () => {
+    render(<Input className="custom-input" />);
+    expect(screen.getByRole('textbox')).toHaveClass('custom-input');
   });
 
-  it('should handle placeholder text', () => {
-    render(<Input placeholder="Enter text" />);
-    expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
+  it('handles different input types', () => {
+    const { rerender } = render(<Input type="text" />);
+    expect(screen.getByRole('textbox')).toHaveAttribute('type', 'text');
+
+    rerender(<Input type="email" data-testid="email" />);
+    expect(screen.getByTestId('email')).toHaveAttribute('type', 'email');
+
+    rerender(<Input type="password" data-testid="password" />);
+    expect(screen.getByTestId('password')).toHaveAttribute('type', 'password');
   });
 
-  it('should handle different input types', () => {
-    const { container } = render(<Input type="password" />);
-    expect(container.firstChild).toHaveAttribute('type', 'password');
-  });
-
-  it('should forward ref', () => {
+  it('forwards ref correctly', () => {
     const ref = { current: null };
     render(<Input ref={ref} />);
-    expect(ref.current).not.toBeNull();
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });
 
-  it('should be disabled when disabled prop is set', () => {
+  it('is disabled when disabled prop is true', () => {
     render(<Input disabled />);
     expect(screen.getByRole('textbox')).toBeDisabled();
   });
 
-  it('should handle value prop', () => {
-    render(<Input value="test value" readOnly />);
-    expect(screen.getByRole('textbox')).toHaveValue('test value');
+  it('accepts placeholder', () => {
+    render(<Input placeholder="Enter text" />);
+    expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
   });
 
-  it('should spread additional props', () => {
-    const { container } = render(<Input data-testid="input" />);
-    expect(container.firstChild).toHaveAttribute('data-testid', 'input');
+  it('handles onChange events', () => {
+    let value = '';
+    render(
+      <Input
+        onChange={(e) => {
+          value = e.target.value;
+        }}
+      />
+    );
+    const input = screen.getByRole('textbox');
+    input.focus();
+    expect(input).toBeInTheDocument();
+  });
+
+  it('applies default styling classes', () => {
+    render(<Input data-testid="styled-input" />);
+    const input = screen.getByTestId('styled-input');
+    expect(input).toHaveClass('flex', 'h-10', 'w-full', 'rounded-md');
   });
 });

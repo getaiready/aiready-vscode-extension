@@ -1,4 +1,4 @@
-import { parse } from '@typescript-eslint/typescript-estree';
+import { parse, TSESTree } from '@typescript-eslint/typescript-estree';
 import { Severity, IssueType } from '@aiready/core';
 import type {
   ContractEnforcementIssue,
@@ -56,9 +56,9 @@ function getLineContent(code: string, line: number): string {
   return (lines[line - 1] || '').trim().slice(0, 120);
 }
 
-function countOptionalChainDepth(node: any): number {
+function countOptionalChainDepth(node: TSESTree.Node): number {
   let depth = 0;
-  let current = node;
+  let current: TSESTree.Node | undefined = node;
   while (current) {
     if (current.type === 'MemberExpression' && current.optional) {
       depth++;
@@ -75,7 +75,7 @@ function countOptionalChainDepth(node: any): number {
   return depth;
 }
 
-function isLiteral(node: any): boolean {
+function isLiteral(node: TSESTree.Node | undefined): boolean {
   if (!node) return false;
   if (node.type === 'Literal') return true;
   if (node.type === 'TemplateLiteral' && node.expressions.length === 0)
@@ -89,18 +89,20 @@ function isLiteral(node: any): boolean {
   return false;
 }
 
-function isProcessEnvAccess(node: any): boolean {
+function isProcessEnvAccess(node: TSESTree.Node | undefined): boolean {
   return (
     node?.type === 'MemberExpression' &&
     node.object?.type === 'MemberExpression' &&
-    node.object.object?.name === 'process' &&
-    node.object.property?.name === 'env'
+    node.object.object?.type === 'Identifier' &&
+    node.object.object.name === 'process' &&
+    node.object.property?.type === 'Identifier' &&
+    node.object.property.name === 'env'
   );
 }
 
-function isSstResourceAccess(node: any): boolean {
+function isSstResourceAccess(node: TSESTree.Node | undefined): boolean {
   if (!node) return false;
-  let current = node;
+  let current: TSESTree.Node | undefined = node;
   // Handle ChainExpression for optional chaining like Resource.MySecret?.value
   if (current.type === 'ChainExpression') {
     current = current.expression;
@@ -125,7 +127,10 @@ function isSstResourceAccess(node: any): boolean {
   return false;
 }
 
-function isSwallowedCatch(body: any[], filePath: string): boolean {
+function isSwallowedCatch(
+  body: TSESTree.Statement[],
+  filePath: string
+): boolean {
   if (body.length === 0) return true;
 
   // UI components often have intentional silent catches for telemetry/analytics
@@ -139,11 +144,23 @@ function isSwallowedCatch(body: any[], filePath: string): boolean {
     ) {
       const callee = stmt.expression.callee;
       // console.log/warn/error is still considered "swallowed" but might be acceptable
-      if (callee?.object?.name === 'console') return true;
+      if (
+        callee?.type === 'MemberExpression' &&
+        callee.object?.type === 'Identifier' &&
+        callee.object.name === 'console'
+      )
+        return true;
 
       // If it's a UI component and looks like telemetry, it's a false positive
       if (isUiComponent) {
-        const calleeName = callee?.name || callee?.property?.name || '';
+        let calleeName = '';
+        if (callee?.type === 'Identifier') calleeName = callee.name;
+        else if (
+          callee?.type === 'MemberExpression' &&
+          callee.property.type === 'Identifier'
+        )
+          calleeName = callee.property.name;
+
         if (/telemetry|analytics|track|logEvent/i.test(calleeName)) {
           return false; // Not "swallowed" in a bad way
         }
@@ -164,7 +181,7 @@ export function detectDefensivePatterns(
   const counts: PatternCounts = { ...ZERO_COUNTS };
   const totalLines = code.split('\n').length;
 
-  let ast: any;
+  let ast: TSESTree.Program;
   try {
     ast = parse(code, {
       filePath,
@@ -176,9 +193,9 @@ export function detectDefensivePatterns(
     return { issues, counts, totalLines };
   }
 
-  const nodesAtFunctionStart = new WeakSet<any>();
+  const nodesAtFunctionStart = new WeakSet<TSESTree.Node>();
 
-  function markFunctionParamNodes(node: any) {
+  function markFunctionParamNodes(node: TSESTree.Node) {
     if (
       node.type === 'FunctionDeclaration' ||
       node.type === 'FunctionExpression' ||
@@ -191,7 +208,11 @@ export function detectDefensivePatterns(
     }
   }
 
-  function visit(node: any, _parent?: any, _keyInParent?: string) {
+  function visit(
+    node: TSESTree.Node | undefined,
+    _parent?: TSESTree.Node,
+    _keyInParent?: string
+  ) {
     if (!node || typeof node !== 'object') return;
 
     markFunctionParamNodes(node);
@@ -368,8 +389,14 @@ export function detectDefensivePatterns(
       node.params
     ) {
       for (const param of node.params) {
-        const typeAnno =
-          param.typeAnnotation?.typeAnnotation ?? param.typeAnnotation;
+        let typeAnno: TSESTree.TypeNode | undefined;
+
+        // Handle Identifier, AssignmentPattern, RestElement, etc.
+        if ('typeAnnotation' in param && param.typeAnnotation) {
+          typeAnno = (param.typeAnnotation as TSESTree.TSTypeAnnotation)
+            .typeAnnotation;
+        }
+
         if (typeAnno?.type === 'TSAnyKeyword') {
           counts['any-parameter']++;
           issues.push(
@@ -387,8 +414,15 @@ export function detectDefensivePatterns(
       }
 
       // Pattern: any return type
-      const returnAnno = node.returnType?.typeAnnotation ?? node.returnType;
+      let returnAnno: TSESTree.TypeNode | undefined;
+      if ('returnType' in node && node.returnType) {
+        returnAnno = (node.returnType as TSESTree.TSTypeAnnotation)
+          .typeAnnotation;
+      }
+
       if (returnAnno?.type === 'TSAnyKeyword') {
+        const returnTypeNode = (node as TSESTree.FunctionDeclaration)
+          .returnType;
         counts['any-return']++;
         issues.push(
           makeIssue(
@@ -396,9 +430,9 @@ export function detectDefensivePatterns(
             Severity.Major,
             'Return type is `any` — callers cannot rely on the result shape',
             filePath,
-            node.returnType?.loc?.start.line ?? 0,
-            node.returnType?.loc?.start.column ?? 0,
-            getLineContent(code, node.returnType?.loc?.start.line ?? 0)
+            returnTypeNode?.loc?.start.line ?? 0,
+            returnTypeNode?.loc?.start.column ?? 0,
+            getLineContent(code, returnTypeNode?.loc?.start.line ?? 0)
           )
         );
       }
@@ -407,11 +441,11 @@ export function detectDefensivePatterns(
     // Recurse
     for (const key in node) {
       if (key === 'loc' || key === 'range' || key === 'parent') continue;
-      const child = node[key];
+      const child = (node as Record<string, any>)[key];
       if (Array.isArray(child)) {
         for (const item of child) {
           if (item && typeof item.type === 'string') {
-            visit(item, node, key);
+            visit(item as TSESTree.Node, node, key);
           }
         }
       } else if (
@@ -419,7 +453,7 @@ export function detectDefensivePatterns(
         typeof child === 'object' &&
         typeof child.type === 'string'
       ) {
-        visit(child, node, key);
+        visit(child as TSESTree.Node, node, key);
       }
     }
   }

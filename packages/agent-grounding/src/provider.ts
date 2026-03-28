@@ -22,7 +22,7 @@ export const AgentGroundingProvider = createProvider({
   getResults(report): AnalysisResult[] {
     return report.issues.map((issue) => ({
       fileName: issue.location.file,
-      issues: [issue] as any[],
+      issues: [issue],
       metrics: {
         agentGroundingScore: report.summary.score,
       },
@@ -37,9 +37,9 @@ export const AgentGroundingProvider = createProvider({
   score(output) {
     const report = {
       summary: output.summary,
-      rawData: (output.metadata as any).rawData,
-      recommendations: (output.summary as any).recommendations || [],
-    } as unknown as AgentGroundingReport;
+      rawData: output.metadata?.rawData ?? {},
+      recommendations: output.summary?.recommendations || [],
+    } as AgentGroundingReport;
     return calculateGroundingScore(report);
   },
 });

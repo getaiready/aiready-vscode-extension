@@ -30,11 +30,11 @@ export const ContractEnforcementProvider = createProvider({
   },
 
   score(output: SpokeOutput, _options: ScanOptions) {
-    const rawData = (output.metadata as any)?.rawData ?? {};
+    const rawData = output.metadata?.rawData ?? {};
     return calculateContractEnforcementScore(
       rawData,
       rawData.totalLines ?? 1,
       rawData.sourceFiles ?? 1
-    ) as any;
+    );
   },
 });

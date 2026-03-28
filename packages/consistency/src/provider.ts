@@ -20,22 +20,20 @@ export const ConsistencyProvider = createProvider({
     return analyzeConsistency(options as ConsistencyOptions);
   },
   getResults(report) {
-    return report.results as AnalysisResult[];
+    return report.results;
   },
   getSummary(report) {
     return report.summary;
   },
   score(output, options) {
-    const results = (output.results || []) as AnalysisResult[];
-    const allIssues = results.flatMap(
-      (r) => (r.issues || []) as ConsistencyIssue[]
-    );
-    const totalFiles = (output.summary as any)?.filesAnalyzed || results.length;
+    const results = output.results || [];
+    const allIssues = results.flatMap((r) => r.issues || []);
+    const totalFiles = output.summary?.filesAnalyzed || results.length;
 
     return calculateConsistencyScore(
       allIssues,
       totalFiles,
-      (options as any).costConfig
+      options?.costConfig
     );
   },
 });

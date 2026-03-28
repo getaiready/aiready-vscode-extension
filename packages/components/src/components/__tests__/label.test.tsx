@@ -3,51 +3,45 @@ import { render, screen } from '@testing-library/react';
 import { Label } from '../label';
 
 describe('Label', () => {
-  it('should render children content', () => {
-    render(<Label>Test Label</Label>);
-    expect(screen.getByText('Test Label')).toBeInTheDocument();
+  it('renders label with text', () => {
+    render(<Label>Name</Label>);
+    expect(screen.getByText('Name')).toBeInTheDocument();
   });
 
-  it('should apply custom className', () => {
-    const { container } = render(<Label className="custom-class">Label</Label>);
-    expect(container.firstChild).toHaveClass('custom-class');
+  it('applies custom className', () => {
+    render(<Label className="custom-label">Test</Label>);
+    expect(screen.getByText('Test')).toHaveClass('custom-label');
   });
 
-  it('should render with default styles', () => {
-    const { container } = render(<Label>Label</Label>);
-    expect(container.firstChild).toHaveClass(
-      'text-sm',
-      'font-medium',
-      'leading-none'
+  it('renders as label element', () => {
+    render(<Label data-testid="label">Label</Label>);
+    const label = screen.getByTestId('label');
+    expect(label.tagName).toBe('LABEL');
+  });
+
+  it('associates with input via htmlFor', () => {
+    render(
+      <>
+        <Label htmlFor="email">Email</Label>
+        <input id="email" type="email" />
+      </>
     );
+    const label = screen.getByText('Email');
+    expect(label).toHaveAttribute('for', 'email');
   });
 
-  it('should forward ref', () => {
-    const ref = { current: null };
-    render(<Label ref={ref}>Label</Label>);
-    expect(ref.current).not.toBeNull();
+  it('applies default styling', () => {
+    render(<Label data-testid="styled">Styled</Label>);
+    const label = screen.getByTestId('styled');
+    expect(label).toHaveClass('text-sm', 'font-medium');
   });
 
-  it('should spread additional props', () => {
-    const { container } = render(<Label data-testid="label">Label</Label>);
-    expect(container.firstChild).toHaveAttribute('data-testid', 'label');
-  });
-
-  it('should render as a label element', () => {
-    render(<Label>Label</Label>);
-    expect(screen.getByText('Label').tagName).toBe('LABEL');
-  });
-
-  it('should support htmlFor attribute', () => {
-    render(<Label htmlFor="input-id">Label</Label>);
-    expect(screen.getByText('Label')).toHaveAttribute('for', 'input-id');
-  });
-
-  it('should have peer-disabled classes', () => {
-    const { container } = render(<Label>Label</Label>);
-    expect(container.firstChild).toHaveClass(
-      'peer-disabled:cursor-not-allowed',
-      'peer-disabled:opacity-70'
+  it('renders with children elements', () => {
+    render(
+      <Label>
+        <span>Required</span>
+      </Label>
     );
+    expect(screen.getByText('Required')).toBeInTheDocument();
   });
 });

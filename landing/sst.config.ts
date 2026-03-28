@@ -97,95 +97,11 @@ export default $config({
 
     const siteUrl = site.url;
 
-    /*
-    // VS Code Marketplace publisher verification
-    // Check if the record already exists to avoid 400 Bad Request error
-    const cfZoneId = '50eb7dcadc84c58ab34583742db0b671';
-    const recordName = '_visual-studio-marketplace-pengcao';
-    const recordValue = 'e5370864-bedf-4b65-9ef4-a99596a60d7d';
-
-    try {
-      const cp = await import('child_process');
-      const cfToken = process.env.CLOUDFLARE_API_TOKEN;
-      if (cfToken) {
-        const cmd = `curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records?name=${recordName}&type=TXT" -H "Authorization: Bearer ${cfToken}"`;
-        const out = cp.execSync(cmd, { encoding: 'utf8' });
-        const res = JSON.parse(out);
-        if (res.success && res.result && res.result.length > 0) {
-          console.log(
-            `Cloudflare TXT record for ${recordName} already exists; skipping.`
-          );
-        } else {
-          sst.cloudflare.dns({ zone: cfZoneId }).createRecord(
-            'VSCodeMarketplaceVerification',
-            {
-              type: 'TXT',
-              name: recordName,
-              value: recordValue,
-            },
-            {}
-          );
-        }
-      } else {
-        // Fallback if no token (shouldn't happen in CI/deploy script)
-        sst.cloudflare.dns({ zone: cfZoneId }).createRecord(
-          'VSCodeMarketplaceVerification',
-          {
-            type: 'TXT',
-            name: recordName,
-            value: recordValue,
-          },
-          {}
-        );
-      }
-    } catch (e) {
-      console.warn(`Warning: Failed to check Cloudflare DNS records: ${e}`);
-      // Final fallback
-      sst.cloudflare.dns({ zone: cfZoneId }).createRecord(
-        'VSCodeMarketplaceVerification',
-        {
-          type: 'TXT',
-          name: recordName,
-          value: recordValue,
-        },
-        {}
-      );
-    }
-    */
-
-    // SNS Topic for health check alerts
-    const healthAlertsTopic = new sst.aws.SnsTopic('HealthAlerts', {
-      subscriptions: {
-        email: process.env.SES_TO_EMAIL || 'caopengau@gmail.com',
-      },
-    });
-
-    // API Gateway for health check worker to publish alerts
-    const healthApi = new sst.aws.ApiGatewayV2('HealthApi', {
-      cors: true,
-    });
-
-    healthApi.route('POST /alert', {
-      handler: 'api/health-alert.handler',
-      link: [healthAlertsTopic],
-      environment: {
-        HEALTH_ALERTS_TOPIC_ARN: healthAlertsTopic.arn,
-      },
-      permissions: [
-        {
-          actions: ['sns:Publish'],
-          resources: [healthAlertsTopic.arn],
-        },
-      ],
-    });
-
     return {
       site: siteUrl,
       apiUrl: api.url,
       submissionsBucket: submissions.name,
       emailDomain: emailDomain?.sender ?? domainName,
-      healthAlertsTopicArn: healthAlertsTopic.arn,
-      healthApiUrl: healthApi.url,
     };
   },
 });
