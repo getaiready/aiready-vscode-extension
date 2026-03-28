@@ -1,5 +1,12 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
+import {
+  generateOrganizationSchema,
+  generateSoftwareApplicationSchema,
+  generateWebSiteSchema,
+  aiMetaTags,
+} from '@/lib/seo-schema';
 import './globals.css';
 
 const geistSans = Geist({
@@ -77,6 +84,24 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
   },
+  other: {
+    'chatgpt:description': aiMetaTags.chatgpt['chatgpt:description'],
+    'chatgpt:category': aiMetaTags.chatgpt['chatgpt:category'],
+    'perplexity:summary': aiMetaTags.perplexity['perplexity:summary'],
+    'perplexity:intent': aiMetaTags.perplexity['perplexity:intent'],
+    'ai:summary': aiMetaTags.general['ai:summary'],
+    'ai:category': aiMetaTags.general['ai:category'],
+    'ai:type': aiMetaTags.general['ai:type'],
+    'ai:pricing': aiMetaTags.general['ai:pricing'],
+    'ai:license': aiMetaTags.general['ai:license'],
+  },
+  icons: {
+    icon: [
+      { url: '/logo-raw-512.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo-raw-512.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: '/logo-raw-512.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 import { headers } from 'next/headers';
@@ -92,6 +117,32 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <Script
+          id="organization-schema-clawmore"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateOrganizationSchema()),
+          }}
+        />
+        <Script
+          id="software-schema-clawmore"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateSoftwareApplicationSchema()),
+          }}
+        />
+        <Script
+          id="website-schema-clawmore"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebSiteSchema()),
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-left`}
       >

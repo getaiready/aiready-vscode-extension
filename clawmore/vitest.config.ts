@@ -14,6 +14,7 @@ export default defineConfig({
     ],
     setupFiles: ['./vitest.setup.ts'],
     alias: {
+      '@/*': path.resolve(__dirname, './*'),
       '@aiready/core': path.resolve(__dirname, '../packages/core/src'),
     },
   },

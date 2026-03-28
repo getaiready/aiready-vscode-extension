@@ -61,6 +61,20 @@ export const metadata: Metadata = {
     'chatgpt:category': aiMetaTags.chatgpt['chatgpt:category'],
     'perplexity:summary': aiMetaTags.perplexity['perplexity:summary'],
     'perplexity:intent': aiMetaTags.perplexity['perplexity:intent'],
+    'ai:summary': aiMetaTags.general['ai:summary'],
+    'ai:category': aiMetaTags.general['ai:category'],
+    'ai:type': aiMetaTags.general['ai:type'],
+    'ai:pricing': aiMetaTags.general['ai:pricing'],
+    'ai:license': aiMetaTags.general['ai:license'],
+  },
+  icons: {
+    icon: [
+      { url: '/logo-transparent-bg.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo-transparent-bg.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/logo-transparent-bg.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 

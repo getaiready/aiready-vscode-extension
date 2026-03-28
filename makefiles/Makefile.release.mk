@@ -190,7 +190,7 @@ version-clawmore-%: ## Bump clawmore version: version-clawmore-patch|minor|major
 
 release-clawmore: release-clawmore-prod ## Alias -> release-clawmore-prod
 
-release-clawmore-dev: ## Deploy ClawMore to dev stage: TYPE=patch|minor|major
+release-clawmore-dev: verify-aws-account ## Deploy ClawMore to dev stage: TYPE=patch|minor|major
 	@$(validate_type)
 	@$(MAKE) -C $(ROOT_DIR) version-clawmore-$(TYPE)
 	@$(call commit_and_tag_app,$(CLAWMORE_DIR),clawmore,clawmore,clawmore-dev)
@@ -201,7 +201,7 @@ release-clawmore-dev: ## Deploy ClawMore to dev stage: TYPE=patch|minor|major
 	@$(call run_if_enabled,$(RELEASE_PUSH),$(MAKE) sync,sync and push)
 	@$(call log_success,Dev release finished for clawmore)
 
-release-clawmore-prod: ## Release ClawMore to production: TYPE=patch|minor|major
+release-clawmore-prod: verify-aws-account ## Release ClawMore to production: TYPE=patch|minor|major
 	@$(validate_type)
 	@$(MAKE) -C $(ROOT_DIR) version-clawmore-$(TYPE)
 	@$(call commit_and_tag_app,$(CLAWMORE_DIR),clawmore,clawmore,clawmore)
@@ -246,7 +246,7 @@ release-landing-prod: ## Release landing to production: TYPE=patch|minor|major
 # Platform Release
 ###############################################################################
 
-release-platform-dev: ## Release platform to dev stage: TYPE=patch|minor|major
+release-platform-dev: verify-aws-account ## Release platform to dev stage: TYPE=patch|minor|major
 	@$(validate_type)
 	@$(MAKE) -C $(ROOT_DIR) version-platform-$(TYPE)
 	@$(call commit_and_tag_app,$(PLATFORM_DIR),platform,@aiready/platform,platform-dev)
@@ -255,7 +255,7 @@ release-platform-dev: ## Release platform to dev stage: TYPE=patch|minor|major
 	@$(call run_if_enabled,$(RELEASE_PUSH),$(MAKE) sync,sync and push)
 	@$(call log_success,Dev release finished for @aiready/platform)
 
-release-platform: ## Release platform to production: TYPE=patch|minor|major
+release-platform: verify-aws-account ## Release platform to production: TYPE=patch|minor|major
 	@$(validate_type)
 	@$(MAKE) -C $(ROOT_DIR) version-platform-$(TYPE)
 	@$(call commit_and_tag_app,$(PLATFORM_DIR),platform,@aiready/platform,platform)

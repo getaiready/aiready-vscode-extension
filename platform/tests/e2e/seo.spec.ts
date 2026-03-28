@@ -25,6 +25,32 @@ test.describe('Platform SEO Metadata', () => {
     ).toBeAttached();
   });
 
+  test('homepage has correct AI meta tags and icons', async ({ page }) => {
+    await page.goto('/');
+
+    // AEO Tags
+    await expect(
+      page.locator('meta[name="chatgpt:description"]')
+    ).toBeAttached();
+    await expect(
+      page.locator('meta[name="perplexity:summary"]')
+    ).toBeAttached();
+    await expect(page.locator('meta[name="ai:summary"]')).toBeAttached();
+    await expect(page.locator('meta[name="ai:category"]')).toHaveAttribute(
+      'content',
+      /AI Infrastructure/
+    );
+
+    // Icons
+    await expect(
+      page.locator('link[rel="icon"][href*="logo-transparent-bg.png"]')
+    ).toBeAttached();
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+      'href',
+      /\/logo-transparent-bg\.png/
+    );
+  });
+
   test('metrics page has correct specific SEO tags', async ({ page }) => {
     await page.goto('/metrics');
 

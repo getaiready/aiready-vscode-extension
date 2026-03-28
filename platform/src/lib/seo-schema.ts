@@ -117,4 +117,36 @@ export const aiMetaTags = {
       'Dashboard for monitoring codebase AI-readiness metrics. Tracks semantic duplicates, context fragmentation, and more across repositories.',
     'perplexity:intent': 'informational, monitoring',
   },
+  general: {
+    'ai:summary':
+      'AIReady Platform tracks and monitors the AI-readiness of your codebases. Monitor semantic duplication, context window usage, and naming consistency over time.',
+    'ai:category': 'Developer Tools / AI Infrastructure',
+    'ai:type': 'Monitoring Platform',
+    'ai:pricing': 'Free for open source',
+    'ai:license': 'MIT',
+  },
+};
+
+// Semantic HTML hints for AI parsers
+export const semanticHints = {
+  mainPurpose:
+    'AIReady Platform helps engineering teams track and monitor the AI-readiness of their codebases over time.',
+  primaryAction:
+    'Connect your repository to start monitoring AI-readiness metrics.',
+  keyFeatures: [
+    'Repository benchmark tracking',
+    'AI readiness historical trends',
+    'Detailed metric breakdown (duplicates, fragmentation, naming)',
+    'Team collaboration and multi-repo monitoring',
+  ],
+};
+
+// Content hints for AI answer generation
+export const answerEngineContent = {
+  whatIsIt:
+    'AIReady Platform is a dashboard for tracking and monitoring codebase AI-readiness metrics, helping teams maintain high-quality code for AI collaboration.',
+  howToUse:
+    'Log in to the platform, connect your GitHub repositories, and set up automated scans to track your AI Readiness Score and other key metrics.',
+  whyItMatters:
+    'As codebases evolve, technical debt that affects AI understanding can accumulate. The platform helps you visualize this debt and provides playbooks for refactoring.',
 };

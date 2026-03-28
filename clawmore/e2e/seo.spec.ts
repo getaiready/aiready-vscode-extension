@@ -12,6 +12,31 @@ test.describe('ClawMore SEO Metadata', () => {
       'content',
       /og-home.png/
     );
+
+    // AI Meta Tags
+    await expect(
+      page.locator('meta[name="chatgpt:description"]')
+    ).toBeAttached();
+    await expect(
+      page.locator('meta[name="perplexity:summary"]')
+    ).toBeAttached();
+    await expect(page.locator('meta[name="ai:summary"]')).toBeAttached();
+
+    // JSON-LD Schemas
+    await expect(
+      page.locator('script[id="organization-schema-clawmore"]')
+    ).toBeAttached();
+    await expect(
+      page.locator('script[id="software-schema-clawmore"]')
+    ).toBeAttached();
+    await expect(
+      page.locator('script[id="website-schema-clawmore"]')
+    ).toBeAttached();
+
+    // Icons
+    await expect(
+      page.locator('link[rel="icon"][href*="logo-raw-512.png"]')
+    ).toBeAttached();
   });
 
   test('robots.txt is correct', async ({ page }) => {

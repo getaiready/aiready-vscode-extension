@@ -80,7 +80,7 @@ RELEASE_ORDER := core $(MIDDLE_SPOKES) cli
 # To use a different profile temporarily, use: make <target> AWS_PROFILE=alt-profile
 export AWS_PROFILE := aiready
 AWS_REGION ?= ap-southeast-2
-EXPECTED_AWS_ACCOUNT_ID := 316759592139
+EXPECTED_AWS_ACCOUNT_ID := 071772312773
 
 # Verify AWS account and profile matches expectations
 .PHONY: verify-aws-account
