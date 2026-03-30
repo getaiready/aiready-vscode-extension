@@ -1,0 +1,344 @@
+{
+  "name": "aiready",
+  "displayName": "AIReady - AI Readiness Checker",
+  "description": "Real-time AI readiness analysis for your codebase. Measure the 9 dimensions of AI-friendliness and detect issues that confuse AI models.",
+  "version": "0.7.9",
+  "publisher": "pengcao",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e3a5f",
+    "theme": "dark"
+  },
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/pengcao.aiready?label=VS%20Code%20Marketplace&color=blue",
+      "href": "https://marketplace.visualstudio.com/items?itemName=pengcao.aiready",
+      "description": "VS Code Marketplace"
+    },
+    {
+      "url": "https://img.shields.io/open-vsx/v/pengcao/aiready?label=Open%20VSX&color=blue",
+      "href": "https://open-vsx.org/extension/pengcao/aiready",
+      "description": "Open VSX Registry"
+    },
+    {
+      "url": "https://img.shields.io/npm/v/@aiready/cli?label=npm&color=blue",
+      "href": "https://www.npmjs.com/package/@aiready/cli",
+      "description": "npm version"
+    }
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "readiness",
+    "9-metrics",
+    "methodology",
+    "code-quality",
+    "linting",
+    "code-analysis",
+    "developer-tools",
+    "ai-tools"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:aiready.summary",
+    "onView:aiready.issues",
+    "onView:aiready.reports",
+    "onCommand:aiready.scan",
+    "onCommand:aiready.visualize",
+    "onCommand:aiready.showReport",
+    "onCommand:aiready.openSettings",
+    "onCommand:aiready.stopVisualizer",
+    "onCommand:aiready.quickScan",
+    "onCommand:aiready.issues.groupBySeverity",
+    "onCommand:aiready.issues.groupByTool",
+    "onCommand:aiready.issues.groupByFile",
+    "onCommand:aiready.issues.groupByNone",
+    "onCommand:aiready.issues.filterAll",
+    "onCommand:aiready.issues.filterCritical",
+    "onCommand:aiready.issues.filterMajor",
+    "onCommand:aiready.issues.filterMinor"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiready.scan",
+        "title": "AIReady: Run Scan",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "aiready.visualize",
+        "title": "AIReady: Run Visualizer",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "aiready.showReport",
+        "title": "AIReady: Show Report",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "aiready.openSettings",
+        "title": "AIReady: Open Settings"
+      },
+      {
+        "command": "aiready.stopVisualizer",
+        "title": "AIReady: Stop Visualizer",
+        "icon": "$(stop-circle)"
+      },
+      {
+        "command": "aiready.quickScan",
+        "title": "AIReady: Quick Scan (Current File)"
+      },
+      {
+        "command": "aiready.issues.groupBySeverity",
+        "title": "AIReady: Group Issues by Severity"
+      },
+      {
+        "command": "aiready.issues.groupByTool",
+        "title": "AIReady: Group Issues by Tool"
+      },
+      {
+        "command": "aiready.issues.groupByFile",
+        "title": "AIReady: Group Issues by File"
+      },
+      {
+        "command": "aiready.issues.groupByNone",
+        "title": "AIReady: Disable Issues Grouping"
+      },
+      {
+        "command": "aiready.issues.filterAll",
+        "title": "AIReady: Show All Issues"
+      },
+      {
+        "command": "aiready.issues.filterCritical",
+        "title": "AIReady: Filter Critical Issues"
+      },
+      {
+        "command": "aiready.issues.filterMajor",
+        "title": "AIReady: Filter Major Issues"
+      },
+      {
+        "command": "aiready.issues.filterMinor",
+        "title": "AIReady: Filter Minor Issues"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "aiready.scan",
+          "group": "navigation@1",
+          "when": "view == aiready.summary || view == aiready.issues || view == aiready.reports"
+        },
+        {
+          "command": "aiready.visualize",
+          "group": "navigation@2",
+          "when": "view == aiready.summary || view == aiready.reports"
+        },
+        {
+          "command": "aiready.openSettings",
+          "group": "navigation@3",
+          "when": "view == aiready.summary"
+        },
+        {
+          "command": "aiready.issues.groupBySeverity",
+          "group": "grouping@1",
+          "when": "view == aiready.issues"
+        },
+        {
+          "command": "aiready.issues.groupByTool",
+          "group": "grouping@2",
+          "when": "view == aiready.issues"
+        },
+        {
+          "command": "aiready.issues.groupByFile",
+          "group": "grouping@3",
+          "when": "view == aiready.issues"
+        },
+        {
+          "command": "aiready.issues.filterCritical",
+          "group": "filter@1",
+          "when": "view == aiready.issues"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "aiready.scan",
+          "group": "navigation@99",
+          "when": "editorTextFocus"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "aiready.quickScan",
+          "group": "aiready@1",
+          "when": "editorTextFocus"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "aiready.showReportDetail",
+          "when": "view == aiready.reports && viewItem == report",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AIReady",
+      "properties": {
+        "aiready.threshold": {
+          "type": "number",
+          "default": 70,
+          "description": "Minimum AI readiness score (0-100) to pass checks. Default: 70 (matching CLI)"
+        },
+        "aiready.failOn": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "major",
+            "any",
+            "none"
+          ],
+          "default": "critical",
+          "description": "Fail on issues of this severity or higher. Default: critical (matching CLI)"
+        },
+        "aiready.tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "patterns",
+              "context",
+              "consistency",
+              "ai-signal-clarity",
+              "agent-grounding",
+              "testability",
+              "doc-drift",
+              "deps-health",
+              "contract-enforcement"
+            ]
+          },
+          "default": [
+            "patterns",
+            "context",
+            "consistency",
+            "ai-signal-clarity",
+            "agent-grounding",
+            "testability",
+            "doc-drift",
+            "deps-health",
+            "contract-enforcement"
+          ],
+          "description": "Tools to run during analysis. Defaults to all 10 scoring spokes (matching CLI defaults)."
+        },
+        "aiready.autoScan": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically scan on file save"
+        },
+        "aiready.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules/**",
+            "dist/**",
+            ".git/**",
+            "**/*.min.js",
+            "**/build/**"
+          ],
+          "description": "Glob patterns to exclude from analysis (matching CLI defaults)"
+        },
+        "aiready.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AI readiness score in status bar"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiready",
+          "title": "AIReady",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "aiready": [
+        {
+          "id": "aiready.summary",
+          "name": "Summary"
+        },
+        {
+          "id": "aiready.issues",
+          "name": "Issues"
+        },
+        {
+          "id": "aiready.reports",
+          "name": "Reports"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "aiready.gettingStarted",
+        "title": "Get Started with AIReady",
+        "description": "Learn how to use AIReady to improve your codebase's AI readiness",
+        "steps": [
+          {
+            "id": "scan",
+            "title": "Run Your First Scan",
+            "description": "Use the command palette (Cmd+Shift+P) and run 'AIReady: Scan Workspace'",
+            "completionEvents": [
+              "onCommand:aiready.scan"
+            ]
+          },
+          {
+            "id": "review",
+            "title": "Review Issues",
+            "description": "Check the AIReady panel in the sidebar for detected issues",
+            "completionEvents": [
+              "onView:aiready.issues"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "build": "pnpm run compile",
+    "compile": "tsup src/extension.ts --format cjs --out-dir dist --external vscode",
+    "watch": "tsup src/extension.ts --format cjs --out-dir dist --external vscode --watch",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests",
+    "package": "vsce package --no-dependencies",
+    "type-check": "tsc --noEmit",
+    "format-check": "prettier --check . --ignore-path ../../.prettierignore"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caopengau/aiready-vscode-extension.git"
+  },
+  "homepage": "https://getaiready.dev",
+  "bugs": {
+    "url": "https://github.com/caopengau/aiready-vscode-extension/issues"
+  }
+}
