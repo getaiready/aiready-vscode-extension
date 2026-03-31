@@ -112,12 +112,12 @@ export async function analyzeNamingGeneralized(
           )
             continue;
 
-          // Allow both SCREAMING_SNAKE_CASE and camelCase for exported constants.
-          // Module-level constants (config objects, paths, etc.) often use SCREAMING_SNAKE_CASE
-          // which is a valid convention for constants, regardless of whether they are primitives.
+          // Allow SCREAMING_SNAKE_CASE, camelCase, or PascalCase for exported constants.
+          // PascalCase is common for Zod schemas (UserSchema), mocks (MockData), or configuration objects.
           if (
             conventions.constantPattern.test(exp.name) ||
-            conventions.variablePattern.test(exp.name)
+            conventions.variablePattern.test(exp.name) ||
+            /^[A-Z][a-zA-Z0-9]*$/.test(exp.name)
           ) {
             continue;
           }

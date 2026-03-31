@@ -8,6 +8,7 @@
     "setup": "tsx src/setup.ts",
     "register": "tsx src/register-commands.ts",
     "content": "tsx src/post-initial-content.ts",
+    "invite": "tsx src/create-invite.ts",
     "dev": "tsx watch src/bot.ts",
     "start": "tsx src/bot.ts",
     "type-check": "tsc --noEmit",

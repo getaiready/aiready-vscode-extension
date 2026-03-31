@@ -18,6 +18,26 @@ export function calculateConsistencyScore(
 ): ToolScoringOutput {
   // Parameter reserved for future configuration; reference to avoid lint warnings
   void costConfig;
+
+  // Defensive check for issues array to prevent crashes
+  if (!Array.isArray(issues)) {
+    return {
+      toolName: ToolName.NamingConsistency,
+      score: 100,
+      rawMetrics: {
+        totalIssues: 0,
+        criticalIssues: 0,
+        majorIssues: 0,
+        minorIssues: 0,
+        issuesPerFile: 0,
+        avgWeightedIssuesPerFile: 0,
+        estimatedDeveloperHours: 0,
+      },
+      factors: [],
+      recommendations: [],
+    };
+  }
+
   const criticalIssues = issues.filter((i) => i.severity === 'critical').length;
   const majorIssues = issues.filter((i) => i.severity === 'major').length;
   const minorIssues = issues.filter((i) => i.severity === 'minor').length;

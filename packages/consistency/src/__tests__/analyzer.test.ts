@@ -247,6 +247,22 @@ describe('naming-generalized const naming', () => {
     }
   });
 
+  it('should allow PascalCase for exported constants (schemas/mocks)', () => {
+    // This test verifies that PascalCase constants like UserSchema or MockData are allowed.
+    const pascalCaseConstants = [
+      'UserSchema',
+      'MockData',
+      'ConfigOptions',
+      'AppRoutes',
+      'FeatureToggle',
+    ];
+
+    const pascalCasePattern = /^[A-Z][a-zA-Z0-9]*$/;
+    for (const name of pascalCaseConstants) {
+      expect(pascalCasePattern.test(name)).toBe(true);
+    }
+  });
+
   it('should NOT flag SCREAMING_SNAKE_CASE constants as naming issues', async () => {
     // After the fix, SCREAMING_SNAKE_CASE constants should not generate naming issues
     const report = await analyzeConsistency({

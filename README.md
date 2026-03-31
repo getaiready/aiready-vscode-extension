@@ -2,6 +2,17 @@
 
 AIReady is a comprehensive toolkit designed to assess and optimize codebases for AI agents (Cursor, Windsurf, Claude, etc.). It identifies "AI-unfriendly" patterns, context fragmentation, and documentation drift to ensure your repository is optimized for the next generation of software development.
 
+## 🤝 Community & Support
+
+[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?label=Discord&logo=discord)](https://discord.gg/invite-code)
+
+Join our [Discord community](https://discord.gg/invite-code) to:
+
+- Get help with AIReady tools
+- Share your AI readiness improvements
+- Connect with other developers
+- Participate in office hours and discussions
+
 ## 🚀 Key Features
 
 - **Semantic Duplicate Detection:** Identifies code clones that confuse LLMs and increase token waste.

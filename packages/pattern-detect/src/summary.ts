@@ -49,6 +49,24 @@ export function getRefactoringSuggestion(
  * Generate a summary of pattern detection results.
  */
 export function generateSummary(results: AnalysisResult[]): PatternSummary {
+  // Defensive check for results array to prevent crashes
+  if (!Array.isArray(results)) {
+    return {
+      totalPatterns: 0,
+      totalTokenCost: 0,
+      patternsByType: {
+        'api-handler': 0,
+        validator: 0,
+        utility: 0,
+        'class-method': 0,
+        component: 0,
+        function: 0,
+        unknown: 0,
+      },
+      topDuplicates: [],
+    };
+  }
+
   const allIssues = results.flatMap((r) => r.issues || []);
   const totalTokenCost = results.reduce(
     (sum, r) => sum + (r.metrics?.tokenCost || 0),

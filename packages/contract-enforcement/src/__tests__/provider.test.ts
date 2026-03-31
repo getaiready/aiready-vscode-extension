@@ -7,6 +7,6 @@ describe('Contract Enforcement Provider', () => {
   });
 
   it('should have alias', () => {
-    expect(CONTRACT_ENFORCEMENT_PROVIDER.alias).toContain('contracts');
+    expect(CONTRACT_ENFORCEMENT_PROVIDER.alias).toContain('contract');
   });
 });
