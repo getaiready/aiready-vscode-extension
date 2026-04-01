@@ -55,8 +55,6 @@ vi.mock('../../utils/report', () => ({
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
-import { getMergedConfig } from '../../utils/config';
-import { countIssues, collectAllIssues } from '../../utils/report';
 import { createScanCommands } from '../scan';
 
 describe('Scan Commands', () => {
