@@ -10,7 +10,7 @@
 # Resolve this makefile's directory to allow absolute invocation
 MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(MAKEFILE_DIR)/Makefile.shared.mk
-REPO_ROOT := $(abspath $(MAKEFILE_DIR)/..)
+REPO_ROOT := $(abspath $(MAKEFILE_DIR)/../..)
 
 .PHONY: publish npm-publish npm-login npm-check npm-publish-all \
 	publish-vscode publish-vscode-via-ci \

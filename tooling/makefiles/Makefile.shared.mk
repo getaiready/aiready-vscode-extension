@@ -46,7 +46,7 @@ PUBLIC_GITHUB_SPOKES := agent-grounding ai-signal-clarity ast-mcp-server change-
 NPM_PUBLISH_SPOKES := agent-grounding ai-signal-clarity ast-mcp-server change-amplification cli consistency context-analyzer contract-enforcement core deps doc-drift pattern-detect testability visualizer
 
 # Resolve root directory relative to this file
-ROOT_DIR ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../../..)
+ROOT_DIR ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
 
 # Project directory definitions
 LANDING_DIR := $(ROOT_DIR)/apps/landing
