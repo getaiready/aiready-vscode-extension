@@ -2,7 +2,7 @@
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/aiready.aiready?label=VS%20Code%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=aiready.aiready)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Discord](https://img.shields.io/discord/123456789?label=Discord&color=7289da)](https://discord.gg/aiready)
+[![Discord](https://img.shields.io/discord/123456789?label=Discord&color=7289da)](https://discord.gg/GdEghUdWHS)
 
 **Real-time AI readiness analysis in VS Code.** Detect issues that confuse AI models before they become problems.
 
@@ -131,7 +131,7 @@ Click on any tool score in the sidebar's **Summary** view to open the **AIReady 
 
 ## Community
 
-- 💬 [Discord](https://discord.gg/aiready) - Join our community
+- 💬 [Discord](https://discord.gg/GdEghUdWHS) - Join our community
 - 🐛 [GitHub Issues](https://github.com/getaiready/aiready-vscode-extension/issues) - Report bugs
 - 💡 [GitHub Discussions](https://github.com/getaiready/aiready-vscode-extension/discussions) - Share ideas
 - 📝 [Contributing](https://github.com/getaiready/aiready-vscode-extension/blob/main/CONTRIBUTING.md) - Learn how to contribute
