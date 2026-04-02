@@ -16,9 +16,11 @@ interface ContextIssueItem extends IssueItem {
 
 interface SectionResult {
   issues: IssueItem[];
+  results?: any[];
 }
 
 export interface AIReadyResult {
+  [key: string]: any;
   summary: {
     totalIssues: number;
     toolsRun: string[];
