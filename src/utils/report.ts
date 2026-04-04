@@ -255,10 +255,15 @@ export function countIssues(result: AIReadyResult): {
     });
   }
 
-  // Fallback scoring calculation
-  const totalDeduction =
-    counts.critical * 15 + counts.major * 5 + counts.minor * 1 + counts.info * 0.1;
-  counts.score = Math.max(0, Math.round(100 - totalDeduction));
+  // Fallback scoring calculation — uses capped log penalties so that repos
+  // with hundreds of issues still receive a meaningful (non-zero) score.
+  // Each severity bucket is compressed via log10 and hard-capped so that
+  // a single bucket can never push the score to 0 on its own.
+  const criticalPenalty = Math.min(25, counts.critical > 0 ? counts.critical * 8 : 0);
+  const majorPenalty = Math.min(30, counts.major > 0 ? 10 + 10 * Math.log10(counts.major) : 0);
+  const minorPenalty = Math.min(20, counts.minor > 0 ? 5 + 8 * Math.log10(counts.minor) : 0);
+  const infoPenalty = Math.min(10, counts.info > 0 ? 3 * Math.log10(counts.info) : 0);
+  counts.score = Math.max(0, Math.round(100 - criticalPenalty - majorPenalty - minorPenalty - infoPenalty));
   counts.rating = getRatingFromScore(counts.score);
 
   return counts;
