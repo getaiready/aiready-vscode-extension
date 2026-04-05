@@ -329,11 +329,11 @@
     "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^3.0.0",
-    "tsup": "^8.3.5",
-    "typescript": "^5.3.0"
+    "@types/node": "^24.12.2",
+    "@types/vscode": "^1.110.0",
+    "@vscode/vsce": "^3.7.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "repository": {
     "type": "git",
