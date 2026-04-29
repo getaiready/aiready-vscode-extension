@@ -44,8 +44,18 @@ vi.mock('vscode', () => ({
   },
   StatusBarAlignment: { Right: 2 },
   ThemeColor: vi.fn(),
+  ThemeIcon: vi.fn(),
+  TreeItem: vi.fn(),
+  TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
+  Range: vi.fn(),
+  EventEmitter: vi.fn().mockImplementation(() => ({
+    event: vi.fn(),
+    fire: vi.fn(),
+    dispose: vi.fn(),
+  })),
   Uri: {
     parse: vi.fn(),
+    file: vi.fn(),
   },
   env: {
     openExternal: vi.fn(),
@@ -133,8 +143,8 @@ describe('Extension', () => {
   });
 
   describe('activate', () => {
-    it('should activate successfully', () => {
-      activate(mockContext);
+    it('should activate successfully', async () => {
+      await activate(mockContext);
 
       // Verify output channel was created
       expect(window.createOutputChannel).toHaveBeenCalledWith('AIReady');
@@ -237,13 +247,13 @@ describe('Extension', () => {
       expect(mockContext.subscriptions.length).toBeGreaterThan(0);
     });
 
-    it('should handle activation errors gracefully', () => {
+    it('should handle activation errors gracefully', async () => {
       // Mock createOutputChannel to throw an error
       (window.createOutputChannel as any).mockImplementationOnce(() => {
         throw new Error('Test error');
       });
 
-      activate(mockContext);
+      await activate(mockContext);
 
       // Should show error message
       expect(window.showErrorMessage).toHaveBeenCalledWith(
@@ -251,7 +261,7 @@ describe('Extension', () => {
       );
     });
 
-    it('should show status bar when enabled', () => {
+    it('should show status bar when enabled', async () => {
       const mockConfig = {
         get: vi.fn().mockImplementation((key: string, defaultValue: any) => {
           if (key === 'showStatusBar') return true;
@@ -260,14 +270,14 @@ describe('Extension', () => {
       };
       (workspace.getConfiguration as any).mockReturnValue(mockConfig);
 
-      activate(mockContext);
+      await activate(mockContext);
 
       // Status bar should be shown
       const statusBarItem = (window.createStatusBarItem as any).mock.results[0].value;
       expect(statusBarItem.show).toHaveBeenCalled();
     });
 
-    it('should register auto-scan listener when enabled', () => {
+    it('should register auto-scan listener when enabled', async () => {
       const mockConfig = {
         get: vi.fn().mockImplementation((key: string, defaultValue: any) => {
           if (key === 'autoScan') return true;
@@ -276,7 +286,7 @@ describe('Extension', () => {
       };
       (workspace.getConfiguration as any).mockReturnValue(mockConfig);
 
-      activate(mockContext);
+      await activate(mockContext);
 
       // Should register onDidSaveTextDocument listener
       expect(workspace.onDidSaveTextDocument).toHaveBeenCalled();
@@ -284,8 +294,8 @@ describe('Extension', () => {
   });
 
   describe('deactivate', () => {
-    it('should dispose resources properly', () => {
-      activate(mockContext);
+    it('should dispose resources properly', async () => {
+      await activate(mockContext);
 
       // Get the status bar item and output channel mocks
       const statusBarItem = (window.createStatusBarItem as any).mock.results[0].value;
